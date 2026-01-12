@@ -1,0 +1,107 @@
+{
+  "name": "@zkaedi/zkaedi-prime",
+  "version": "1.0.0",
+  "description": "🔱 ZKAEDI PRIME — Recursively Coupled Hamiltonian Framework for ML/AI Optimization, Evidential Learning, and Uncertainty Quantification",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./optimization": {
+      "import": "./dist/optimization/index.esm.js",
+      "require": "./dist/optimization/index.js",
+      "types": "./dist/optimization/index.d.ts"
+    },
+    "./evidential": {
+      "import": "./dist/evidential/index.esm.js",
+      "require": "./dist/evidential/index.js",
+      "types": "./dist/evidential/index.d.ts"
+    },
+    "./security": {
+      "import": "./dist/security/index.esm.js",
+      "require": "./dist/security/index.js",
+      "types": "./dist/security/index.d.ts"
+    },
+    "./learning": {
+      "import": "./dist/learning/index.esm.js",
+      "require": "./dist/learning/index.js",
+      "types": "./dist/learning/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "verify": "tsx scripts/verify.ts",
+    "prepublishOnly": "npm run build && npm run test",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "machine-learning",
+    "bayesian-optimization",
+    "evidential-learning",
+    "uncertainty-quantification",
+    "hamiltonian-dynamics",
+    "active-learning",
+    "multimodal-fusion",
+    "adversarial-robustness",
+    "open-set-recognition",
+    "drift-detection",
+    "optimization",
+    "ai",
+    "ml",
+    "typescript"
+  ],
+  "author": {
+    "name": "ZKAEDI",
+    "email": "zkaedi@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zkaedi/zkaedi-prime.git",
+    "directory": "zkaedi-prime-package"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "@zkaedi:registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.4",
+    "ts-jest": "^29.1.2",
+    "tsup": "^8.0.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {},
+  "peerDependenciesMeta": {}
+}
