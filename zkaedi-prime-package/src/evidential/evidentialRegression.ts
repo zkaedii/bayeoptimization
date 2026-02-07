@@ -22,10 +22,19 @@ export interface EvidentialRegressionOutput {
  * Evidential Regressor using Normal-Inverse-Gamma distribution
  */
 export class EvidentialRegressor {
-  private klWeight: number;
+  private readonly options: Required<EvidentialRegressorOptions>;
 
   constructor(options: EvidentialRegressorOptions = {}) {
-    this.klWeight = options.klWeight ?? 0.001;
+    this.options = {
+      klWeight: options.klWeight ?? 0.001,
+    };
+  }
+
+  /**
+   * Get KL weight for regularization
+   */
+  getKLWeight(): number {
+    return this.options.klWeight;
   }
 
   /**

@@ -2,7 +2,7 @@
  * Tests for Security Modules
  */
 
-import { ConfusionMatrixDefense } from "../security/confusionMatrixDefense.js";
+import { ConfusionMatrixDefense } from "../security/confusionMatrixDefense";
 
 describe("ConfusionMatrixDefense", () => {
   it("should track confusion matrix metrics", () => {

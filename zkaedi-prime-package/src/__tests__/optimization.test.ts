@@ -2,7 +2,7 @@
  * Tests for Bayesian Optimization
  */
 
-import { BayesianOptimizer } from "../optimization/bayesianOptimization.js";
+import { BayesianOptimizer } from "../optimization/bayesianOptimization";
 
 describe("BayesianOptimizer", () => {
   it("should optimize a simple function", async () => {

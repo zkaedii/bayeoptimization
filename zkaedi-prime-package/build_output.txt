@@ -1,0 +1,324 @@
+
+> @zkaedi/zkaedi-prime@1.0.0 build
+> tsup
+
+▲ [WARNING] The condition "types" here will never be used as it comes after both "import" and "require" [package.json]
+
+    package.json:12:6:
+      12 │       "types": "./dist/index.d.ts"
+         ╵       ~~~~~~~
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:10:6:
+      10 │       "import": "./dist/index.esm.js",
+         ╵       ~~~~~~~~
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:11:6:
+      11 │       "require": "./dist/index.js",
+         ╵       ~~~~~~~~~
+
+▲ [WARNING] The condition "types" here will never be used as it comes after both "import" and "require" [package.json]
+
+    package.json:17:6:
+      17 │       "types": "./dist/optimization/index.d.ts"
+         ╵       ~~~~~~~
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:15:6:
+      15 │       "import": "./dist/optimization/index.esm.js",
+         ╵       ~~~~~~~~
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:16:6:
+      16 │       "require": "./dist/optimization/index.js",
+         ╵       ~~~~~~~~~
+
+▲ [WARNING] The condition "types" here will never be used as it comes after both "import" and "require" [package.json]
+
+    package.json:22:6:
+      22 │       "types": "./dist/evidential/index.d.ts"
+         ╵       ~~~~~~~
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:20:6:
+      20 │       "import": "./dist/evidential/index.esm.js",
+         ╵       ~~~~~~~~
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:21:6:
+      21 │       "require": "./dist/evidential/index.js",
+         ╵       ~~~~~~~~~
+
+▲ [WARNING] The condition "types" here will never be used as it comes after both "import" and "require" [package.json]
+
+    package.json:27:6:
+      27 │       "types": "./dist/security/index.d.ts"
+         ╵       ~~~~~~~
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:25:6:
+      25 │       "import": "./dist/security/index.esm.js",
+         ╵       ~~~~~~~~
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:26:6:
+      26 │       "require": "./dist/security/index.js",
+         ╵       ~~~~~~~~~
+
+▲ [WARNING] The condition "types" here will never be used as it comes after both "import" and "require" [package.json]
+
+    package.json:32:6:
+      32 │       "types": "./dist/learning/index.d.ts"
+         ╵       ~~~~~~~
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:30:6:
+      30 │       "import": "./dist/learning/index.esm.js",
+         ╵       ~~~~~~~~
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:31:6:
+      31 │       "require": "./dist/learning/index.js",
+         ╵       ~~~~~~~~~
+
+[34mCLI[39m Building entry: src/index.ts, src/evidential/index.ts, src/learning/index.ts, src/security/index.ts, src/optimization/index.ts
+[34mCLI[39m Using tsconfig: tsconfig.json
+[34mCLI[39m tsup v8.5.1
+[34mCLI[39m Using tsup config: /home/runner/work/bayeoptimization/bayeoptimization/zkaedi-prime-package/tsup.config.ts
+[34mCLI[39m Target: es2022
+[34mCLI[39m Cleaning output folder
+[34mCJS[39m Build start
+[34mESM[39m Build start
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:12:6:
+[37m      12 │       [32m"types"[37m: "./dist/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:10:6:
+[37m      10 │       [32m"import"[37m: "./dist/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:11:6:
+[37m      11 │       [32m"require"[37m: "./dist/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:17:6:
+[37m      17 │       [32m"types"[37m: "./dist/optimization/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:15:6:
+[37m      15 │       [32m"import"[37m: "./dist/optimization/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:16:6:
+[37m      16 │       [32m"require"[37m: "./dist/optimization/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:22:6:
+[37m      22 │       [32m"types"[37m: "./dist/evidential/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:20:6:
+[37m      20 │       [32m"import"[37m: "./dist/evidential/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:21:6:
+[37m      21 │       [32m"require"[37m: "./dist/evidential/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:27:6:
+[37m      27 │       [32m"types"[37m: "./dist/security/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:25:6:
+[37m      25 │       [32m"import"[37m: "./dist/security/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:26:6:
+[37m      26 │       [32m"require"[37m: "./dist/security/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:32:6:
+[37m      32 │       [32m"types"[37m: "./dist/learning/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:30:6:
+[37m      30 │       [32m"import"[37m: "./dist/learning/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:31:6:
+[37m      31 │       [32m"require"[37m: "./dist/learning/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:12:6:
+[37m      12 │       [32m"types"[37m: "./dist/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:10:6:
+[37m      10 │       [32m"import"[37m: "./dist/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:11:6:
+[37m      11 │       [32m"require"[37m: "./dist/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:17:6:
+[37m      17 │       [32m"types"[37m: "./dist/optimization/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:15:6:
+[37m      15 │       [32m"import"[37m: "./dist/optimization/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:16:6:
+[37m      16 │       [32m"require"[37m: "./dist/optimization/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:22:6:
+[37m      22 │       [32m"types"[37m: "./dist/evidential/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:20:6:
+[37m      20 │       [32m"import"[37m: "./dist/evidential/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:21:6:
+[37m      21 │       [32m"require"[37m: "./dist/evidential/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:27:6:
+[37m      27 │       [32m"types"[37m: "./dist/security/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:25:6:
+[37m      25 │       [32m"import"[37m: "./dist/security/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:26:6:
+[37m      26 │       [32m"require"[37m: "./dist/security/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[warn] [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe condition "types" here will never be used as it comes after both "import" and "require"[0m [package.json]
+
+    package.json:32:6:
+[37m      32 │       [32m"types"[37m: "./dist/learning/index.d.ts"
+         ╵       [32m~~~~~~~[0m
+
+  The "import" condition comes earlier and will be used for all "import" statements:
+
+    package.json:30:6:
+[37m      30 │       [32m"import"[37m: "./dist/learning/index.esm.js",
+         ╵       [32m~~~~~~~~[0m
+
+  The "require" condition comes earlier and will be used for all "require" calls:
+
+    package.json:31:6:
+[37m      31 │       [32m"require"[37m: "./dist/learning/index.js",
+         ╵       [32m~~~~~~~~~[0m
+
+
+[32mESM[39m [1mdist/index.mjs                  [22m[32m18.48 KB[39m
+[32mESM[39m [1mdist/evidential/index.mjs       [22m[32m5.97 KB[39m
+[32mESM[39m [1mdist/learning/index.mjs         [22m[32m3.92 KB[39m
+[32mESM[39m [1mdist/optimization/index.mjs     [22m[32m4.11 KB[39m
+[32mESM[39m [1mdist/security/index.mjs         [22m[32m4.97 KB[39m
+[32mESM[39m [1mdist/index.mjs.map              [22m[32m52.12 KB[39m
+[32mESM[39m [1mdist/evidential/index.mjs.map   [22m[32m16.14 KB[39m
+[32mESM[39m [1mdist/learning/index.mjs.map     [22m[32m10.46 KB[39m
+[32mESM[39m [1mdist/optimization/index.mjs.map [22m[32m12.29 KB[39m
+[32mESM[39m [1mdist/security/index.mjs.map     [22m[32m13.00 KB[39m
+[32mESM[39m ⚡️ Build success in 289ms
+[32mCJS[39m [1mdist/index.js                  [22m[32m18.86 KB[39m
+[32mCJS[39m [1mdist/learning/index.js         [22m[32m4.00 KB[39m
+[32mCJS[39m [1mdist/evidential/index.js       [22m[32m6.11 KB[39m
+[32mCJS[39m [1mdist/security/index.js         [22m[32m5.08 KB[39m
+[32mCJS[39m [1mdist/optimization/index.js     [22m[32m4.16 KB[39m
+[32mCJS[39m [1mdist/index.js.map              [22m[32m52.12 KB[39m
+[32mCJS[39m [1mdist/evidential/index.js.map   [22m[32m16.14 KB[39m
+[32mCJS[39m [1mdist/security/index.js.map     [22m[32m13.00 KB[39m
+[32mCJS[39m [1mdist/optimization/index.js.map [22m[32m12.29 KB[39m
+[32mCJS[39m [1mdist/learning/index.js.map     [22m[32m10.47 KB[39m
+[32mCJS[39m ⚡️ Build success in 290ms
+[34mDTS[39m Build start
+src/security/confusionMatrixDefense.ts(43,46): error TS6133: 'confidence' is declared but its value is never read.
+
+[31mError: error occurred in dts build
+    at Worker.<anonymous> (/home/runner/work/bayeoptimization/bayeoptimization/zkaedi-prime-package/node_modules/tsup/dist/index.js:1545:26)
+    at Worker.emit (node:events:508:28)
+    at MessagePort.<anonymous> (node:internal/worker:332:53)
+    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)[39m
+[31mDTS[39m [31mBuild error[39m

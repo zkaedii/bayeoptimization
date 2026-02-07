@@ -50,7 +50,6 @@ export class BayesianOptimizer {
   async optimize(
     objective: (params: number[]) => number | Promise<number>
   ): Promise<OptimizationResult> {
-    const paramNames = Object.keys(this.bounds);
     const trajectory: Array<{ x: number[]; y: number }> = [];
 
     // Warm-up: random sampling
@@ -103,7 +102,7 @@ export class BayesianOptimizer {
   private fitGP(): any {
     // Simplified GP - in production would use full Gaussian Process
     return {
-      predict: (x: number[]) => {
+      predict: (_xNew: number[]) => {
         // Mock prediction
         const mean = 0;
         const std = 1;
@@ -177,7 +176,7 @@ export class BayesianOptimizer {
     x = Math.abs(x);
 
     const t = 1.0 / (1.0 + p * x);
-    const y = 1.0 - ((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
 
     return sign * y;
   }
