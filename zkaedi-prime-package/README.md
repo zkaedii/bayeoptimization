@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-11%20passing-brightgreen.svg)]()
 
 A powerful TypeScript framework for advanced machine learning and AI optimization, featuring:
 
@@ -16,6 +17,17 @@ A powerful TypeScript framework for advanced machine learning and AI optimizatio
 - **Adversarial Robustness** with Hamiltonian smoothing
 - **Open-Set Recognition** for novel class detection
 - **Drift Detection** for temporal monitoring
+
+## 🚀 NEW: Phase 1 Ecosystem Integrations
+
+ZKAEDI PRIME now includes production-grade integrations for enterprise ML/AI workflows:
+
+- **📊 MLflow** - Comprehensive experiment tracking and model registry
+- **🔍 OpenTelemetry** - Distributed tracing and observability
+- **📈 Prometheus** - Metrics collection and monitoring
+- **⚙️ Configuration** - Type-safe, centralized configuration management
+
+[See Integration Documentation →](./docs/integrations/README.md)
 
 ---
 
@@ -266,3 +278,104 @@ Built with the ZKAEDI PRIME framework — recursively coupled Hamiltonian dynami
 ---
 
 **Made with 🔱 by ZKAEDI**
+
+---
+
+## 🔗 Ecosystem Integrations
+
+ZKAEDI PRIME integrates with leading ML/AI tools for production deployments:
+
+### MLflow Integration
+
+Track experiments, log parameters, and manage model artifacts:
+
+```typescript
+import { MLflowTracker } from "@zkaedi/zkaedi-prime/integrations";
+
+const tracker = new MLflowTracker({
+  trackingUri: "http://localhost:5000",
+  experimentName: "my-optimization",
+});
+
+await tracker.startRun("run-1");
+await tracker.logParams({ n_iter: 50, kernel: "RBF" });
+await tracker.logMetric("best_value", result.bestY);
+await tracker.endRun("FINISHED");
+```
+
+[MLflow Documentation →](./docs/integrations/mlflow.md)
+
+### Prometheus Metrics
+
+Export metrics for monitoring and alerting:
+
+```typescript
+import { PrometheusExporter, PrometheusServer } from "@zkaedi/zkaedi-prime/telemetry";
+
+const exporter = new PrometheusExporter({ enabled: true });
+const server = new PrometheusServer(exporter, { port: 9090 });
+
+await server.start();
+// Metrics at http://localhost:9090/metrics
+```
+
+[Prometheus Documentation →](./docs/integrations/prometheus.md)
+
+### OpenTelemetry Tracing
+
+Add distributed tracing to your optimization workflows:
+
+```typescript
+import { TelemetryProvider } from "@zkaedi/zkaedi-prime/telemetry";
+
+const telemetry = new TelemetryProvider({
+  serviceName: "my-optimization",
+  enableTracing: true,
+});
+
+telemetry.initialize();
+
+await telemetry.withSpan("optimization", async (span) => {
+  // Your code here - automatically traced
+  return result;
+});
+```
+
+[OpenTelemetry Documentation →](./docs/integrations/opentelemetry.md)
+
+### Configuration Management
+
+Centralized, type-safe configuration:
+
+```typescript
+import { mergeConfig } from "@zkaedi/zkaedi-prime/config";
+
+const config = mergeConfig({
+  mlflow: {
+    trackingUri: "http://mlflow:5000",
+    experimentName: "production-optimization",
+  },
+  prometheus: {
+    enabled: true,
+    port: 9090,
+  },
+  opentelemetry: {
+    serviceName: "zkaedi-prime",
+    enableTracing: true,
+  },
+});
+```
+
+**See [Integration Documentation](./docs/integrations/README.md) for complete guides.**
+
+---
+
+## 📊 Examples
+
+Comprehensive examples are available in the `examples/` directory:
+
+- [Bayesian Optimization](./examples/bayesianOptimization.ts)
+- [Evidential Learning](./examples/evidentialLearning.ts)
+- [MLflow Tracking](./examples/integrations/mlflow-tracking-example.ts)
+- [Prometheus Metrics](./examples/integrations/prometheus-metrics-example.ts)
+
