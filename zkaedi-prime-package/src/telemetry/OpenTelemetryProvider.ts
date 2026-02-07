@@ -112,12 +112,13 @@ export class TelemetryProvider {
   }
 
   /**
-   * Set the current context
+   * Execute a function with a specific context
+   * 
+   * Note: For proper context activation, use this method or otelContext.with directly.
+   * The context is only active within the callback function scope.
    */
-  setContext(context: Context): void {
-    otelContext.with(context, () => {
-      // Context is now active
-    });
+  withContext<T>(context: Context, fn: () => T): T {
+    return otelContext.with(context, fn);
   }
 
   /**
