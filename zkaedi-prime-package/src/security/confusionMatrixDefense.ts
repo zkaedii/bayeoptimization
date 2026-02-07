@@ -40,7 +40,7 @@ export class ConfusionMatrixDefense {
   /**
    * Update confusion matrix
    */
-  update(predicted: 0 | 1, trueLabel: 0 | 1, confidence: number): void {
+  update(predicted: 0 | 1, trueLabel: 0 | 1, _confidence: number): void {
     if (predicted === 1 && trueLabel === 1) {
       this.tp++;
     } else if (predicted === 0 && trueLabel === 0) {

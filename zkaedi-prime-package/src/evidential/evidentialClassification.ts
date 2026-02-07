@@ -27,22 +27,29 @@ export interface EvidentialPrediction {
  * Evidential Classifier using Dirichlet distributions
  */
 export class EvidentialClassifier {
-  private nClasses: number;
-  private klWeight: number;
-  private klAnnealing: boolean;
+  private readonly options: Required<EvidentialClassifierOptions>;
 
   constructor(options: EvidentialClassifierOptions) {
-    this.nClasses = options.nClasses;
-    this.klWeight = options.klWeight ?? 0.001;
-    this.klAnnealing = options.klAnnealing ?? true;
+    this.options = {
+      nClasses: options.nClasses,
+      klWeight: options.klWeight ?? 0.001,
+      klAnnealing: options.klAnnealing ?? true,
+    };
+  }
+
+  /**
+   * Get configuration options
+   */
+  getOptions(): Required<EvidentialClassifierOptions> {
+    return { ...this.options };
   }
 
   /**
    * Forward pass: convert evidence to Dirichlet parameters
    */
   forward(evidence: number[]): EvidentialOutput {
-    if (evidence.length !== this.nClasses) {
-      throw new Error(`Evidence length ${evidence.length} != nClasses ${this.nClasses}`);
+    if (evidence.length !== this.options.nClasses) {
+      throw new Error(`Evidence length ${evidence.length} != nClasses ${this.options.nClasses}`);
     }
 
     // Ensure non-negative evidence
@@ -53,7 +60,7 @@ export class EvidentialClassifier {
     const S = alpha.reduce((sum, a) => sum + a, 0);
 
     // Uncertainty: u = K / S
-    const uncertainty = this.nClasses / S;
+    const uncertainty = this.options.nClasses / S;
 
     return {
       alpha,

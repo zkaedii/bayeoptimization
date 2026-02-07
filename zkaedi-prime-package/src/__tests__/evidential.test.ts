@@ -2,7 +2,7 @@
  * Tests for Evidential Learning
  */
 
-import { EvidentialClassifier } from "../evidential/evidentialClassification.js";
+import { EvidentialClassifier } from "../evidential/evidentialClassification";
 
 describe("EvidentialClassifier", () => {
   it("should classify with uncertainty", () => {

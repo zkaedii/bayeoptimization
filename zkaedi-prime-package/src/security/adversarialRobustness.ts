@@ -21,13 +21,27 @@ export interface AdversarialRobustnessResult {
  */
 export class ZkaediPrimeAdversarialRobustness {
   private epsilon: number;
-  private nSteps: number;
-  private stepSize: number;
+  private _nSteps: number;
+  private _stepSize: number;
 
   constructor(options: AdversarialRobustnessOptions = {}) {
     this.epsilon = options.epsilon ?? 0.1;
-    this.nSteps = options.nSteps ?? 10;
-    this.stepSize = options.stepSize ?? 0.01;
+    this._nSteps = options.nSteps ?? 10;
+    this._stepSize = options.stepSize ?? 0.01;
+  }
+
+  /**
+   * Get number of steps
+   */
+  getNSteps(): number {
+    return this._nSteps;
+  }
+
+  /**
+   * Get step size
+   */
+  getStepSize(): number {
+    return this._stepSize;
   }
 
   /**
