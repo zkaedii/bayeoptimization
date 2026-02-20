@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZKAEDI PRIME Interactive Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #111638;
+  --bg-panel: rgba(17, 22, 56, 0.7);
+  --border-glow: rgba(0, 240, 255, 0.3);
+  --cyan: #00f0ff;
+  --magenta: #ff00aa;
+  --green: #00ff88;
+  --yellow: #ffdd00;
+  --red: #ff3366;
+  --text-primary: #e0e6ff;
+  --text-secondary: #8892b0;
+  --text-dim: #4a5280;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; height: 56px;
+  background: rgba(10,14,39,0.95);
+  border-bottom: 1px solid var(--border-glow);
+  backdrop-filter: blur(20px);
+}
+.logo {
+  font-size: 18px; font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--magenta));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-right: 24px; white-space: nowrap; letter-spacing: 1px;
+}
+.nav-tabs { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.nav-tab {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid transparent;
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all 0.3s; white-space: nowrap;
+}
+.nav-tab:hover { color: var(--cyan); border-color: rgba(0,240,255,0.2); }
+.nav-tab.active {
+  background: rgba(0,240,255,0.1); color: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 15px rgba(0,240,255,0.2), inset 0 0 15px rgba(0,240,255,0.05);
+}
+.conn-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-dim); white-space: nowrap;
+}
+.conn-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red); transition: background 0.3s;
+}
+.conn-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+/* PANELS */
+.panel { display: none; padding: 20px; position: relative; z-index: 1; }
+.panel.active { display: block; }
+.panel-header {
+  margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,240,255,0.15);
+}
+.panel-header h2 {
+  font-size: 22px; font-weight: 700;
+  background: linear-gradient(90deg, var(--cyan), var(--text-primary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.panel-header p { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+
+/* CARDS */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid rgba(0,240,255,0.15);
+  border-radius: 12px; padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s;
+}
+.card:hover { border-color: rgba(0,240,255,0.35); }
+.card-title {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 12px;
+}
+
+/* GRIDS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+.grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 16px; }
+
+/* CONTROLS */
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-secondary);
+}
+select, input[type=range] {
+  background: var(--bg-secondary); border: 1px solid rgba(0,240,255,0.2);
+  color: var(--text-primary); padding: 6px 10px; border-radius: 6px;
+  font-size: 13px; outline: none; min-width: 120px;
+}
+select:focus, input:focus { border-color: var(--cyan); }
+input[type=range] {
+  -webkit-appearance: none; height: 6px; padding: 0;
+  border-radius: 3px; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--cyan); cursor: pointer;
+  box-shadow: 0 0 8px var(--cyan);
+}
+.range-val { font-size: 12px; color: var(--cyan); font-weight: 600; min-width: 30px; text-align: center; }
+
+/* BUTTONS */
+.btn {
+  padding: 10px 24px; border-radius: 8px; border: none;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 1px;
+  transition: all 0.3s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--cyan), #0088ff);
+  color: #000; box-shadow: 0 0 20px rgba(0,240,255,0.3);
+}
+.btn-primary:hover { box-shadow: 0 0 30px rgba(0,240,255,0.5); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  background: rgba(255,0,170,0.15); color: var(--magenta);
+  border: 1px solid rgba(255,0,170,0.3);
+}
+.btn-secondary:hover { background: rgba(255,0,170,0.25); }
+
+/* STATS BAR */
+.stats-bar {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.stat {
+  background: var(--bg-panel); border: 1px solid rgba(0,240,255,0.1);
+  border-radius: 8px; padding: 10px 16px;
+  display: flex; flex-direction: column; gap: 2px; min-width: 120px;
+}
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+.stat-value { font-size: 18px; font-weight: 700; color: var(--cyan); }
+.stat-value.magenta { color: var(--magenta); }
+.stat-value.green { color: var(--green); }
+.stat-value.yellow { color: var(--yellow); }
+
+/* PHASE BADGE */
+.phase-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+}
+.phase-warmup { background: rgba(255,221,0,0.15); color: var(--yellow); border: 1px solid rgba(255,221,0,0.3); }
+.phase-optimizing { background: rgba(0,240,255,0.15); color: var(--cyan); border: 1px solid rgba(0,240,255,0.3); }
+.phase-complete { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+.phase-stable { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+.phase-drift { background: rgba(255,221,0,0.15); color: var(--yellow); border: 1px solid rgba(255,221,0,0.3); }
+.phase-critical { background: rgba(255,51,102,0.15); color: var(--red); border: 1px solid rgba(255,51,102,0.3); }
+
+/* SUB-TABS */
+.sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.sub-tab {
+  padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,0,170,0.2);
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.3s;
+}
+.sub-tab.active {
+  background: rgba(255,0,170,0.15); color: var(--magenta);
+  border-color: var(--magenta);
+}
+
+/* GAUGE */
+.gauge-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.gauge-svg { width: 140px; height: 80px; }
+.gauge-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.gauge-value { font-size: 24px; font-weight: 800; }
+
+/* CHART CONTAINER */
+.chart-wrap { position: relative; width: 100%; }
+.chart-wrap canvas { width: 100% !important; }
+
+/* LOADING SPINNER */
+.spinner {
+  display: none; width: 24px; height: 24px;
+  border: 3px solid rgba(0,240,255,0.2); border-top-color: var(--cyan);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading .spinner { display: inline-block; }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+  text-align: left; padding: 8px; color: var(--text-secondary);
+  border-bottom: 1px solid rgba(0,240,255,0.15);
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+}
+.data-table td { padding: 6px 8px; border-bottom: 1px solid rgba(0,240,255,0.05); }
+.data-table tr:hover td { background: rgba(0,240,255,0.03); }
+
+/* PROB BAR */
+.prob-bar-bg {
+  height: 8px; background: rgba(0,240,255,0.1); border-radius: 4px;
+  overflow: hidden; min-width: 80px;
+}
+.prob-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4, .grid-2x2 { grid-template-columns: 1fr; }
+  .controls { flex-direction: column; }
+  nav { flex-wrap: wrap; height: auto; padding: 8px 12px; }
+  .nav-tabs { order: 3; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="logo">ZKAEDI PRIME</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-panel="bayesian" onclick="switchPanel('bayesian')">Bayesian Optimization</button>
+    <button class="nav-tab" data-panel="evidential" onclick="switchPanel('evidential')">Evidential Learning</button>
+    <button class="nav-tab" data-panel="adversarial" onclick="switchPanel('adversarial')">Adversarial Lab</button>
+    <button class="nav-tab" data-panel="active" onclick="switchPanel('active')">Active Learning</button>
+    <button class="nav-tab" data-panel="drift" onclick="switchPanel('drift')">Drift Detection</button>
+  </div>
+  <div class="conn-status">
+    <div class="conn-dot" id="connDot"></div>
+    <span id="connText">Disconnected</span>
+  </div>
+</nav>
+
+<!-- ═══════════════════ BAYESIAN OPTIMIZATION ═══════════════════ -->
+<div class="panel active" id="panel-bayesian">
+  <div class="panel-header">
+    <h2>Bayesian Optimization Engine</h2>
+    <p>Gaussian Process surrogate with Hamiltonian dynamics acceleration</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Objective Function</label>
+      <select id="bo-objective">
+        <option value="ackley">Ackley</option>
+        <option value="rastrigin">Rastrigin</option>
+        <option value="rosenbrock">Rosenbrock</option>
+        <option value="schwefel">Schwefel</option>
+        <option value="himmelblau">Himmelblau</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Acquisition Function</label>
+      <select id="bo-acquisition">
+        <option value="EI">Expected Improvement</option>
+        <option value="PI">Probability of Improvement</option>
+        <option value="UCB">Upper Confidence Bound</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Kernel</label>
+      <select id="bo-kernel">
+        <option value="rbf">RBF (Gaussian)</option>
+        <option value="matern">Matern 5/2</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Iterations: <span class="range-val" id="bo-iter-val">40</span></label>
+      <input type="range" id="bo-iter" min="10" max="100" value="40" oninput="document.getElementById('bo-iter-val').textContent=this.value">
+    </div>
+    <div class="control-group">
+      <label>Warmup: <span class="range-val" id="bo-warmup-val">5</span></label>
+      <input type="range" id="bo-warmup" min="3" max="10" value="5" oninput="document.getElementById('bo-warmup-val').textContent=this.value">
+    </div>
+    <div class="control-group" style="justify-content:flex-end">
+      <button class="btn btn-primary" id="bo-launch" onclick="launchOptimization()">Launch Optimization</button>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="bo-stats">
+    <div class="stat"><span class="stat-label">Iteration</span><span class="stat-value" id="bo-stat-iter">0</span></div>
+    <div class="stat"><span class="stat-label">Best Value</span><span class="stat-value green" id="bo-stat-best">--</span></div>
+    <div class="stat"><span class="stat-label">Best X</span><span class="stat-value" id="bo-stat-bestx" style="font-size:13px">--</span></div>
+    <div class="stat"><span class="stat-label">Phase</span><span id="bo-stat-phase" class="phase-badge phase-warmup">READY</span></div>
+    <div class="stat"><span class="stat-label">GP Variance</span><span class="stat-value yellow" id="bo-stat-var">--</span></div>
+  </div>
+
+  <div class="grid-2x2">
+    <div class="card"><div class="card-title">Convergence</div><div class="chart-wrap"><canvas id="chart-convergence"></canvas></div></div>
+    <div class="card"><div class="card-title">Evaluated Points</div><div class="chart-wrap"><canvas id="chart-points"></canvas></div></div>
+    <div class="card"><div class="card-title">Acquisition Values & GP Mean</div><div class="chart-wrap"><canvas id="chart-acquisition"></canvas></div></div>
+    <div class="card"><div class="card-title">Hamiltonian Energy</div><div class="chart-wrap"><canvas id="chart-hamiltonian"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ EVIDENTIAL LEARNING ═══════════════════ -->
+<div class="panel" id="panel-evidential">
+  <div class="panel-header">
+    <h2>Evidential Learning</h2>
+    <p>Dirichlet-based classification & Normal-Inverse-Gamma regression with uncertainty quantification</p>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSubTab('ev', 'classify')">Classification</button>
+    <button class="sub-tab" onclick="switchSubTab('ev', 'regression')">Regression</button>
+    <button class="sub-tab" onclick="switchSubTab('ev', 'openset')">Open-Set Recognition</button>
+  </div>
+
+  <!-- Classification -->
+  <div id="ev-classify" class="ev-sub active">
+    <div class="controls">
+      <button class="btn btn-primary" onclick="runEvidentialClassify()">Generate Batch</button>
+      <div class="spinner" id="ev-c-spinner"></div>
+    </div>
+    <div class="stats-bar" id="ev-c-stats"></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Class Probabilities & Uncertainty</div><div class="chart-wrap"><canvas id="chart-ev-probs"></canvas></div></div>
+      <div class="card"><div class="card-title">Uncertainty vs Dissonance</div><div class="chart-wrap"><canvas id="chart-ev-unc"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:16px;max-height:300px;overflow-y:auto">
+      <div class="card-title">Batch Results</div>
+      <table class="data-table" id="ev-c-table"><thead><tr><th>#</th><th>True</th><th>Predicted</th><th>Confidence</th><th>Uncertainty</th><th>Correct</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Regression -->
+  <div id="ev-regression" class="ev-sub" style="display:none">
+    <div class="controls">
+      <button class="btn btn-primary" onclick="runEvidentialRegression()">Generate Series</button>
+      <div class="spinner" id="ev-r-spinner"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Predictions with Uncertainty Bands</div><div class="chart-wrap"><canvas id="chart-ev-reg"></canvas></div></div>
+      <div class="card"><div class="card-title">Epistemic vs Aleatoric Uncertainty</div><div class="chart-wrap"><canvas id="chart-ev-unc2"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- Open-Set -->
+  <div id="ev-openset" class="ev-sub" style="display:none">
+    <div class="controls">
+      <div class="control-group">
+        <label>Rejection Threshold: <span class="range-val" id="ev-os-thr-val">0.6</span></label>
+        <input type="range" id="ev-os-thr" min="0.1" max="0.9" step="0.05" value="0.6" oninput="document.getElementById('ev-os-thr-val').textContent=parseFloat(this.value).toFixed(2)">
+      </div>
+      <button class="btn btn-primary" onclick="runOpenSet()">Run Recognition</button>
+      <div class="spinner" id="ev-os-spinner"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Known vs Unknown Detection</div><div class="chart-wrap"><canvas id="chart-ev-os"></canvas></div></div>
+      <div class="card"><div class="card-title">Confidence Distribution</div><div class="chart-wrap"><canvas id="chart-ev-os-conf"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ADVERSARIAL LAB ═══════════════════ -->
+<div class="panel" id="panel-adversarial">
+  <div class="panel-header">
+    <h2>Adversarial Robustness Lab</h2>
+    <p>FGSM attack simulation with Hamiltonian smoothing defense</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Epsilon: <span class="range-val" id="adv-eps-val">0.10</span></label>
+      <input type="range" id="adv-eps" min="0.01" max="0.5" step="0.01" value="0.1" oninput="document.getElementById('adv-eps-val').textContent=parseFloat(this.value).toFixed(2)">
+    </div>
+    <div class="control-group">
+      <label>Smoothing: <span class="range-val" id="adv-smooth-val">0.30</span></label>
+      <input type="range" id="adv-smooth" min="0.1" max="1.0" step="0.05" value="0.3" oninput="document.getElementById('adv-smooth-val').textContent=parseFloat(this.value).toFixed(2)">
+    </div>
+    <button class="btn btn-primary" onclick="runAdversarial()">Run Evaluation</button>
+    <div class="spinner" id="adv-spinner"></div>
+  </div>
+
+  <div class="grid-4" id="adv-gauges">
+    <div class="card gauge-container">
+      <div class="card-title">Attack Success Rate</div>
+      <svg class="gauge-svg" viewBox="0 0 140 80" id="gauge-attack"><path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="rgba(0,240,255,0.1)" stroke-width="10" stroke-linecap="round"/><path id="gauge-attack-fill" d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="var(--red)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 188.5"/></svg>
+      <span class="gauge-value" id="gauge-attack-val" style="color:var(--red)">--%</span>
+    </div>
+    <div class="card gauge-container">
+      <div class="card-title">Defense Success Rate</div>
+      <svg class="gauge-svg" viewBox="0 0 140 80"><path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="rgba(0,240,255,0.1)" stroke-width="10" stroke-linecap="round"/><path id="gauge-defense-fill" d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="var(--green)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 188.5"/></svg>
+      <span class="gauge-value" id="gauge-defense-val" style="color:var(--green)">--%</span>
+    </div>
+    <div class="card gauge-container">
+      <div class="card-title">Avg Robustness</div>
+      <svg class="gauge-svg" viewBox="0 0 140 80"><path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="rgba(0,240,255,0.1)" stroke-width="10" stroke-linecap="round"/><path id="gauge-robust-fill" d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="var(--cyan)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 188.5"/></svg>
+      <span class="gauge-value" id="gauge-robust-val" style="color:var(--cyan)">--%</span>
+    </div>
+    <div class="card gauge-container">
+      <div class="card-title">Avg Perturbation</div>
+      <svg class="gauge-svg" viewBox="0 0 140 80"><path d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="rgba(0,240,255,0.1)" stroke-width="10" stroke-linecap="round"/><path id="gauge-perturb-fill" d="M 10 70 A 60 60 0 0 1 130 70" fill="none" stroke="var(--yellow)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 188.5"/></svg>
+      <span class="gauge-value" id="gauge-perturb-val" style="color:var(--yellow)">--</span>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="card"><div class="card-title">Probability Comparison (Single Sample)</div><div class="chart-wrap"><canvas id="chart-adv-probs"></canvas></div></div>
+    <div class="card"><div class="card-title">Attack Success by Sample</div><div class="chart-wrap"><canvas id="chart-adv-attacks"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ACTIVE LEARNING ═══════════════════ -->
+<div class="panel" id="panel-active">
+  <div class="panel-header">
+    <h2>Active Learning Simulator</h2>
+    <p>Uncertainty-driven and diversity-based sample selection in 2D feature space</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Batch Size: <span class="range-val" id="al-batch-val">5</span></label>
+      <input type="range" id="al-batch" min="1" max="15" value="5" oninput="document.getElementById('al-batch-val').textContent=this.value">
+    </div>
+    <div class="control-group">
+      <label>Classes</label>
+      <select id="al-classes"><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+    </div>
+    <button class="btn btn-primary" onclick="initActiveLearning()">Initialize</button>
+    <button class="btn btn-secondary" onclick="stepActiveLearning()">Next Batch</button>
+    <button class="btn btn-secondary" id="al-auto-btn" onclick="toggleAutoAL()">Auto-Run</button>
+    <div class="spinner" id="al-spinner"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Iteration</span><span class="stat-value" id="al-stat-iter">0</span></div>
+    <div class="stat"><span class="stat-label">Labeled</span><span class="stat-value green" id="al-stat-labeled">0</span></div>
+    <div class="stat"><span class="stat-label">Unlabeled</span><span class="stat-value yellow" id="al-stat-unlabeled">0</span></div>
+    <div class="stat"><span class="stat-label">Accuracy</span><span class="stat-value magenta" id="al-stat-acc">--%</span></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Feature Space (Labeled vs Unlabeled)</div><div class="chart-wrap"><canvas id="chart-al-scatter"></canvas></div></div>
+    <div class="card"><div class="card-title">Learning Curve</div><div class="chart-wrap"><canvas id="chart-al-curve"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DRIFT DETECTION ═══════════════════ -->
+<div class="panel" id="panel-drift">
+  <div class="panel-header">
+    <h2>Temporal Drift Detection</h2>
+    <p>Sliding-window KL divergence with automatic phase detection</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Window Size: <span class="range-val" id="dd-win-val">20</span></label>
+      <input type="range" id="dd-win" min="5" max="50" value="20" oninput="document.getElementById('dd-win-val').textContent=this.value">
+    </div>
+    <div class="control-group">
+      <label>Drift Threshold: <span class="range-val" id="dd-dthr-val">0.30</span></label>
+      <input type="range" id="dd-dthr" min="0.05" max="1.0" step="0.05" value="0.3" oninput="document.getElementById('dd-dthr-val').textContent=parseFloat(this.value).toFixed(2)">
+    </div>
+    <div class="control-group">
+      <label>Critical Threshold: <span class="range-val" id="dd-cthr-val">0.60</span></label>
+      <input type="range" id="dd-cthr" min="0.1" max="2.0" step="0.05" value="0.6" oninput="document.getElementById('dd-cthr-val').textContent=parseFloat(this.value).toFixed(2)">
+    </div>
+    <button class="btn btn-primary" onclick="runDriftScenario()">Run Scenario</button>
+    <div class="spinner" id="dd-spinner"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Current Phase</span><span id="dd-stat-phase" class="phase-badge phase-stable">--</span></div>
+    <div class="stat"><span class="stat-label">Ticks</span><span class="stat-value" id="dd-stat-ticks">0</span></div>
+    <div class="stat"><span class="stat-label">Max KL Divergence</span><span class="stat-value magenta" id="dd-stat-maxkl">--</span></div>
+    <div class="stat"><span class="stat-label">Drift Events</span><span class="stat-value yellow" id="dd-stat-events">0</span></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Time Series with Phase Regions</div><div class="chart-wrap"><canvas id="chart-dd-ts"></canvas></div></div>
+    <div class="card"><div class="card-title">KL Divergence</div><div class="chart-wrap"><canvas id="chart-dd-kl"></canvas></div></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  GLOBALS
+// ═══════════════════════════════════════════════
+const charts = {};
+let ws = null;
+let alAutoInterval = null;
+const CHART_COLORS = {
+  cyan: '#00f0ff', magenta: '#ff00aa', green: '#00ff88',
+  yellow: '#ffdd00', red: '#ff3366', blue: '#4488ff',
+  purple: '#aa44ff', orange: '#ff8844'
+};
+const CLASS_COLORS = [CHART_COLORS.cyan, CHART_COLORS.magenta, CHART_COLORS.green, CHART_COLORS.yellow, CHART_COLORS.red, CHART_COLORS.purple, CHART_COLORS.orange, CHART_COLORS.blue];
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 300 },
+  plugins: { legend: { labels: { color: '#8892b0', font: { size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#4a5280', font: { size: 10 } }, grid: { color: 'rgba(0,240,255,0.05)' } },
+    y: { ticks: { color: '#4a5280', font: { size: 10 } }, grid: { color: 'rgba(0,240,255,0.05)' } }
+  }
+};
+
+function deepMerge(target, source) {
+  const out = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      out[key] = deepMerge(out[key] || {}, source[key]);
+    } else {
+      out[key] = source[key];
+    }
+  }
+  return out;
+}
+
+function makeChart(id, type, data, optOverrides = {}) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  canvas.parentElement.style.height = '280px';
+  const opts = deepMerge(CHART_DEFAULTS, optOverrides);
+  charts[id] = new Chart(canvas, { type, data, options: opts });
+  return charts[id];
+}
+
+function fmt(n, d = 4) { return typeof n === 'number' ? n.toFixed(d) : '--'; }
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector(`.nav-tab[data-panel="${name}"]`).classList.add('active');
+}
+function switchSubTab(prefix, name) {
+  const parent = prefix === 'ev' ? document.getElementById('panel-evidential') : null;
+  if (!parent) return;
+  parent.querySelectorAll('.ev-sub').forEach(s => s.style.display = 'none');
+  parent.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`ev-${name}`).style.display = 'block';
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+//  WEBSOCKET
+// ═══════════════════════════════════════════════
+function connectWS() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${location.host}`);
+  ws.onopen = () => {
+    document.getElementById('connDot').classList.add('connected');
+    document.getElementById('connText').textContent = 'Connected';
+  };
+  ws.onclose = () => {
+    document.getElementById('connDot').classList.remove('connected');
+    document.getElementById('connText').textContent = 'Reconnecting...';
+    setTimeout(connectWS, 2000);
+  };
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    handleWSMessage(msg);
+  };
+}
+
+function handleWSMessage(msg) {
+  switch (msg.type) {
+    case 'optimization_started':
+      document.getElementById('bo-launch').disabled = true;
+      break;
+    case 'optimization_step':
+      updateBOStep(msg.step);
+      break;
+    case 'optimization_complete':
+      updateBOComplete(msg);
+      document.getElementById('bo-launch').disabled = false;
+      break;
+    case 'error':
+      console.error('WS Error:', msg.message);
+      document.getElementById('bo-launch').disabled = false;
+      break;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  BAYESIAN OPTIMIZATION
+// ═══════════════════════════════════════════════
+const boData = { iterations: [], bestY: [], y: [], acq: [], gpMean: [], gpVar: [], energy: [], pointsX: [], pointsY: [], pointsVal: [] };
+
+function resetBOData() {
+  Object.keys(boData).forEach(k => boData[k] = []);
+}
+
+function launchOptimization() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  resetBOData();
+  ws.send(JSON.stringify({
+    type: 'start_optimization',
+    config: {
+      objective: document.getElementById('bo-objective').value,
+      nIter: parseInt(document.getElementById('bo-iter').value),
+      nWarmup: parseInt(document.getElementById('bo-warmup').value),
+      acquisitionFunction: document.getElementById('bo-acquisition').value,
+      kernel: document.getElementById('bo-kernel').value,
+      bounds: [[-5, 5], [-5, 5]]
+    }
+  }));
+}
+
+function updateBOStep(step) {
+  boData.iterations.push(step.iteration);
+  boData.bestY.push(step.bestY);
+  boData.y.push(step.y);
+  boData.acq.push(step.acquisitionValue);
+  boData.gpMean.push(step.gpMean);
+  boData.gpVar.push(step.gpVariance);
+  boData.energy.push(step.hamiltonianEnergy);
+  boData.pointsX.push(step.x[0]);
+  boData.pointsY.push(step.x[1]);
+  boData.pointsVal.push(step.y);
+
+  // Stats
+  document.getElementById('bo-stat-iter').textContent = step.iteration;
+  document.getElementById('bo-stat-best').textContent = fmt(step.bestY);
+  document.getElementById('bo-stat-bestx').textContent = `[${fmt(step.bestX[0],2)}, ${fmt(step.bestX[1],2)}]`;
+  document.getElementById('bo-stat-var').textContent = fmt(step.gpVariance);
+  const phaseEl = document.getElementById('bo-stat-phase');
+  phaseEl.textContent = step.phase.toUpperCase();
+  phaseEl.className = 'phase-badge phase-' + (step.phase === 'warmup' ? 'warmup' : 'optimizing');
+
+  // Convergence chart
+  makeChart('chart-convergence', 'line', {
+    labels: boData.iterations,
+    datasets: [
+      { label: 'Best Y', data: boData.bestY, borderColor: CHART_COLORS.green, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3 },
+      { label: 'Current Y', data: boData.y, borderColor: CHART_COLORS.cyan, borderWidth: 1, pointRadius: 2, pointBackgroundColor: CHART_COLORS.cyan, fill: false }
+    ]
+  });
+
+  // Points scatter
+  const colors = boData.pointsVal.map(v => {
+    const min = Math.min(...boData.pointsVal), max = Math.max(...boData.pointsVal);
+    const t = max > min ? (v - min) / (max - min) : 0.5;
+    return `rgba(${Math.round(255*(1-t))}, ${Math.round(255*t)}, ${Math.round(136*t)}, 0.8)`;
+  });
+  makeChart('chart-points', 'scatter', {
+    datasets: [{
+      label: 'Evaluated Points',
+      data: boData.pointsX.map((x, i) => ({ x, y: boData.pointsY[i] })),
+      backgroundColor: colors, pointRadius: 5
+    }]
+  });
+
+  // Acquisition + GP Mean
+  makeChart('chart-acquisition', 'line', {
+    labels: boData.iterations,
+    datasets: [
+      { label: 'Acquisition', data: boData.acq, borderColor: CHART_COLORS.magenta, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3 },
+      { label: 'GP Mean', data: boData.gpMean, borderColor: CHART_COLORS.cyan, borderWidth: 1, pointRadius: 0, fill: false, tension: 0.3, borderDash: [4,4] }
+    ]
+  });
+
+  // Hamiltonian
+  makeChart('chart-hamiltonian', 'line', {
+    labels: boData.iterations,
+    datasets: [{ label: 'Hamiltonian Energy', data: boData.energy, borderColor: CHART_COLORS.yellow, borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(255,221,0,0.08)' }, tension: 0.4 }]
+  });
+}
+
+function updateBOComplete(msg) {
+  const phaseEl = document.getElementById('bo-stat-phase');
+  phaseEl.textContent = 'COMPLETE';
+  phaseEl.className = 'phase-badge phase-complete';
+}
+
+// ═══════════════════════════════════════════════
+//  EVIDENTIAL LEARNING
+// ═══════════════════════════════════════════════
+async function runEvidentialClassify() {
+  document.getElementById('ev-c-spinner').style.display = 'inline-block';
+  const res = await fetch('/api/evidential/classify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nClasses: 5, batchSize: 25 }) });
+  const data = await res.json();
+  document.getElementById('ev-c-spinner').style.display = 'none';
+
+  const results = data.results;
+
+  // Probability chart - show last sample
+  const last = results[results.length - 1].prediction;
+  makeChart('chart-ev-probs', 'bar', {
+    labels: last.probabilities.map((_, i) => `Class ${i}`),
+    datasets: [{
+      label: 'Probability',
+      data: last.probabilities,
+      backgroundColor: CLASS_COLORS.slice(0, last.probabilities.length).map(c => c + '88'),
+      borderColor: CLASS_COLORS.slice(0, last.probabilities.length),
+      borderWidth: 2
+    }]
+  }, { scales: { y: { ...CHART_DEFAULTS.scales.y, max: 1 } } });
+
+  // Uncertainty vs Dissonance scatter
+  makeChart('chart-ev-unc', 'scatter', {
+    datasets: [{
+      label: 'Samples',
+      data: results.map(r => ({ x: r.prediction.uncertainty, y: r.prediction.dissonance })),
+      backgroundColor: results.map(r => r.prediction.predictedClass === r.trueClass ? CHART_COLORS.green + '88' : CHART_COLORS.red + '88'),
+      pointRadius: 6
+    }]
+  }, {
+    scales: {
+      x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Uncertainty', color: '#8892b0' } },
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'Dissonance', color: '#8892b0' } }
+    }
+  });
+
+  // Table
+  const tbody = document.querySelector('#ev-c-table tbody');
+  tbody.innerHTML = results.map((r, i) => {
+    const correct = r.prediction.predictedClass === r.trueClass;
+    return `<tr><td>${i+1}</td><td>Class ${r.trueClass}</td><td>Class ${r.prediction.predictedClass}</td>
+      <td>${fmt(r.prediction.confidence, 3)}</td><td>${fmt(r.prediction.uncertainty, 3)}</td>
+      <td style="color:${correct ? 'var(--green)' : 'var(--red)'}">${correct ? 'YES' : 'NO'}</td></tr>`;
+  }).join('');
+
+  // Stats
+  const correct = results.filter(r => r.prediction.predictedClass === r.trueClass).length;
+  document.getElementById('ev-c-stats').innerHTML = `
+    <div class="stat"><span class="stat-label">Accuracy</span><span class="stat-value green">${(100*correct/results.length).toFixed(1)}%</span></div>
+    <div class="stat"><span class="stat-label">Avg Uncertainty</span><span class="stat-value yellow">${fmt(results.reduce((s,r)=>s+r.prediction.uncertainty,0)/results.length,3)}</span></div>
+    <div class="stat"><span class="stat-label">High Uncertainty</span><span class="stat-value magenta">${results.filter(r=>r.prediction.isHighUncertainty).length}</span></div>
+  `;
+}
+
+async function runEvidentialRegression() {
+  document.getElementById('ev-r-spinner').style.display = 'inline-block';
+  const res = await fetch('/api/evidential/regression', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nPoints: 60 }) });
+  const data = await res.json();
+  document.getElementById('ev-r-spinner').style.display = 'none';
+  const results = data.results;
+
+  const xs = results.map(r => r.x.toFixed(1));
+  makeChart('chart-ev-reg', 'line', {
+    labels: xs,
+    datasets: [
+      { label: 'True Y', data: results.map(r => r.trueY), borderColor: CHART_COLORS.cyan, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 },
+      { label: 'Predicted', data: results.map(r => r.prediction.mean), borderColor: CHART_COLORS.magenta, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 },
+      { label: 'Upper Bound', data: results.map(r => r.prediction.upperBound), borderColor: 'transparent', backgroundColor: 'rgba(0,240,255,0.08)', fill: '+1', pointRadius: 0 },
+      { label: 'Lower Bound', data: results.map(r => r.prediction.lowerBound), borderColor: 'transparent', backgroundColor: 'rgba(0,240,255,0.08)', fill: '-1', pointRadius: 0 }
+    ]
+  });
+
+  makeChart('chart-ev-unc2', 'line', {
+    labels: xs,
+    datasets: [
+      { label: 'Epistemic', data: results.map(r => r.prediction.epistemicUncertainty), borderColor: CHART_COLORS.magenta, borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(255,0,170,0.1)' }, tension: 0.4 },
+      { label: 'Aleatoric', data: results.map(r => r.prediction.aleatoricUncertainty), borderColor: CHART_COLORS.yellow, borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(255,221,0,0.1)' }, tension: 0.4 }
+    ]
+  });
+}
+
+async function runOpenSet() {
+  document.getElementById('ev-os-spinner').style.display = 'inline-block';
+  const threshold = parseFloat(document.getElementById('ev-os-thr').value);
+  const res = await fetch('/api/evidential/openset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ threshold, nKnown: 20, nUnknown: 8 }) });
+  const data = await res.json();
+  document.getElementById('ev-os-spinner').style.display = 'none';
+  const results = data.results;
+
+  // Scatter: known vs unknown
+  const knownPts = results.filter(r => !r.result.isUnknown);
+  const unknownPts = results.filter(r => r.result.isUnknown);
+  makeChart('chart-ev-os', 'scatter', {
+    datasets: [
+      { label: 'Known', data: knownPts.map((r,i) => ({ x: i, y: r.result.confidence })), backgroundColor: CHART_COLORS.green + '88', pointRadius: 7 },
+      { label: 'Unknown', data: unknownPts.map((r,i) => ({ x: knownPts.length + i, y: r.result.confidence })), backgroundColor: CHART_COLORS.red + '88', pointRadius: 7, pointStyle: 'triangle' }
+    ]
+  }, {
+    scales: {
+      x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Sample Index', color: '#8892b0' } },
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'Confidence', color: '#8892b0' }, max: 1 }
+    }
+  });
+
+  // Confidence distribution
+  const bins = Array.from({ length: 10 }, (_, i) => `${(i*0.1).toFixed(1)}-${((i+1)*0.1).toFixed(1)}`);
+  const knownHist = new Float64Array(10);
+  const unkHist = new Float64Array(10);
+  results.forEach(r => {
+    const bin = Math.min(9, Math.floor(r.result.confidence * 10));
+    if (r.result.isUnknown) unkHist[bin]++; else knownHist[bin]++;
+  });
+  makeChart('chart-ev-os-conf', 'bar', {
+    labels: bins,
+    datasets: [
+      { label: 'Known', data: Array.from(knownHist), backgroundColor: CHART_COLORS.green + '66', borderColor: CHART_COLORS.green, borderWidth: 1 },
+      { label: 'Unknown', data: Array.from(unkHist), backgroundColor: CHART_COLORS.red + '66', borderColor: CHART_COLORS.red, borderWidth: 1 }
+    ]
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  ADVERSARIAL LAB
+// ═══════════════════════════════════════════════
+function setGauge(id, value, max = 1) {
+  const pct = Math.max(0, Math.min(1, value / max));
+  const arc = 188.5 * pct;
+  document.getElementById(id).setAttribute('stroke-dasharray', `${arc} ${188.5 - arc}`);
+}
+
+async function runAdversarial() {
+  document.getElementById('adv-spinner').style.display = 'inline-block';
+  const epsilon = parseFloat(document.getElementById('adv-eps').value);
+  const smoothingStrength = parseFloat(document.getElementById('adv-smooth').value);
+
+  const [evalRes, sampleRes] = await Promise.all([
+    fetch('/api/adversarial/evaluate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ epsilon, smoothingStrength, nSamples: 30 }) }),
+    fetch('/api/adversarial/attack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ epsilon }) })
+  ]);
+  const evalData = await evalRes.json();
+  const sampleData = await sampleRes.json();
+  document.getElementById('adv-spinner').style.display = 'none';
+
+  const s = evalData.summary;
+  setGauge('gauge-attack-fill', s.attackSuccessRate);
+  document.getElementById('gauge-attack-val').textContent = (s.attackSuccessRate * 100).toFixed(1) + '%';
+  setGauge('gauge-defense-fill', s.defenseSuccessRate);
+  document.getElementById('gauge-defense-val').textContent = (s.defenseSuccessRate * 100).toFixed(1) + '%';
+  setGauge('gauge-robust-fill', Math.max(0, s.averageRobustness));
+  document.getElementById('gauge-robust-val').textContent = (Math.max(0, s.averageRobustness) * 100).toFixed(1) + '%';
+  setGauge('gauge-perturb-fill', s.averagePerturbationNorm, 2);
+  document.getElementById('gauge-perturb-val').textContent = fmt(s.averagePerturbationNorm, 3);
+
+  // Single sample comparison
+  const atk = sampleData.attack;
+  const def = sampleData.defense;
+  const labels = atk.originalProbs.map((_, i) => `Class ${i}`);
+  makeChart('chart-adv-probs', 'bar', {
+    labels,
+    datasets: [
+      { label: 'Original', data: atk.originalProbs, backgroundColor: CHART_COLORS.cyan + '88', borderColor: CHART_COLORS.cyan, borderWidth: 1 },
+      { label: 'Adversarial', data: atk.adversarialProbs, backgroundColor: CHART_COLORS.red + '88', borderColor: CHART_COLORS.red, borderWidth: 1 },
+      { label: 'Defended', data: def.probabilities, backgroundColor: CHART_COLORS.green + '88', borderColor: CHART_COLORS.green, borderWidth: 1 }
+    ]
+  }, { scales: { y: { ...CHART_DEFAULTS.scales.y, max: 1 } } });
+
+  // Attack success by sample
+  const attackResults = evalData.attacks.map((a, i) => ({ x: i, success: a.attackSuccess ? 1 : 0 }));
+  makeChart('chart-adv-attacks', 'bar', {
+    labels: attackResults.map(a => a.x),
+    datasets: [{
+      label: 'Attack Success',
+      data: attackResults.map(a => a.success),
+      backgroundColor: attackResults.map(a => a.success ? CHART_COLORS.red + '88' : CHART_COLORS.green + '88'),
+      borderWidth: 0
+    }]
+  }, { scales: { y: { ...CHART_DEFAULTS.scales.y, max: 1.2 } }, plugins: { legend: { display: false } } });
+}
+
+// ═══════════════════════════════════════════════
+//  ACTIVE LEARNING
+// ═══════════════════════════════════════════════
+async function initActiveLearning() {
+  if (alAutoInterval) { clearInterval(alAutoInterval); alAutoInterval = null; document.getElementById('al-auto-btn').textContent = 'Auto-Run'; }
+  document.getElementById('al-spinner').style.display = 'inline-block';
+  const nClasses = parseInt(document.getElementById('al-classes').value);
+  const res = await fetch('/api/active-learning/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nClasses, nSamples: 200 }) });
+  const state = await res.json();
+  document.getElementById('al-spinner').style.display = 'none';
+  updateALView(state, []);
+}
+
+async function stepActiveLearning() {
+  document.getElementById('al-spinner').style.display = 'inline-block';
+  const batchSize = parseInt(document.getElementById('al-batch').value);
+  const res = await fetch('/api/active-learning/step', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ batchSize }) });
+  const data = await res.json();
+  document.getElementById('al-spinner').style.display = 'none';
+  if (data.done) { if (alAutoInterval) { clearInterval(alAutoInterval); alAutoInterval = null; document.getElementById('al-auto-btn').textContent = 'Auto-Run'; } return; }
+  updateALView(data.state, data.selectedPoints || []);
+}
+
+function toggleAutoAL() {
+  if (alAutoInterval) {
+    clearInterval(alAutoInterval);
+    alAutoInterval = null;
+    document.getElementById('al-auto-btn').textContent = 'Auto-Run';
+  } else {
+    document.getElementById('al-auto-btn').textContent = 'Stop';
+    alAutoInterval = setInterval(stepActiveLearning, 800);
+  }
+}
+
+function updateALView(state, selected) {
+  document.getElementById('al-stat-iter').textContent = state.iteration;
+  document.getElementById('al-stat-labeled').textContent = state.nLabeled;
+  document.getElementById('al-stat-unlabeled').textContent = state.nUnlabeled;
+  const lastAcc = state.accuracyHistory.length > 0 ? state.accuracyHistory[state.accuracyHistory.length - 1].accuracy : 0;
+  document.getElementById('al-stat-acc').textContent = (lastAcc * 100).toFixed(1) + '%';
+
+  // Scatter
+  const datasets = [];
+  // Labeled by class
+  const classGroups = {};
+  state.labeledPool.forEach(p => {
+    if (!classGroups[p.trueLabel]) classGroups[p.trueLabel] = [];
+    classGroups[p.trueLabel].push({ x: p.features[0], y: p.features[1] });
+  });
+  Object.keys(classGroups).forEach(cls => {
+    datasets.push({
+      label: `Class ${cls}`,
+      data: classGroups[cls],
+      backgroundColor: CLASS_COLORS[cls] + 'cc',
+      pointRadius: 6
+    });
+  });
+  // Unlabeled
+  datasets.push({
+    label: 'Unlabeled',
+    data: state.unlabeledPool.map(p => ({ x: p.features[0], y: p.features[1] })),
+    backgroundColor: 'rgba(74,82,128,0.3)',
+    pointRadius: 3
+  });
+  // Selected (highlighted)
+  if (selected.length > 0) {
+    datasets.push({
+      label: 'Just Selected',
+      data: selected.map(s => ({ x: s.features[0], y: s.features[1] })),
+      backgroundColor: CHART_COLORS.magenta,
+      pointRadius: 9,
+      pointStyle: 'star'
+    });
+  }
+
+  makeChart('chart-al-scatter', 'scatter', { datasets }, {
+    scales: {
+      x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Feature 1', color: '#8892b0' } },
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'Feature 2', color: '#8892b0' } }
+    }
+  });
+
+  // Learning curve
+  if (state.accuracyHistory.length > 0) {
+    makeChart('chart-al-curve', 'line', {
+      labels: state.accuracyHistory.map(h => h.nLabeled),
+      datasets: [{
+        label: 'Accuracy',
+        data: state.accuracyHistory.map(h => (h.accuracy * 100)),
+        borderColor: CHART_COLORS.green,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: CHART_COLORS.green,
+        fill: { target: 'origin', above: 'rgba(0,255,136,0.08)' },
+        tension: 0.3
+      }]
+    }, {
+      scales: {
+        x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Labeled Samples', color: '#8892b0' } },
+        y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'Accuracy %', color: '#8892b0' }, min: 0, max: 100 }
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  DRIFT DETECTION
+// ═══════════════════════════════════════════════
+async function runDriftScenario() {
+  document.getElementById('dd-spinner').style.display = 'inline-block';
+  const windowSize = parseInt(document.getElementById('dd-win').value);
+  const driftThreshold = parseFloat(document.getElementById('dd-dthr').value);
+  const criticalThreshold = parseFloat(document.getElementById('dd-cthr').value);
+
+  const res = await fetch('/api/drift/scenario', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nTicks: 150, windowSize, driftThreshold, criticalThreshold }) });
+  const data = await res.json();
+  document.getElementById('dd-spinner').style.display = 'none';
+
+  const results = data.results;
+  const lastPhase = results[results.length - 1].phase;
+  const phaseEl = document.getElementById('dd-stat-phase');
+  phaseEl.textContent = lastPhase;
+  phaseEl.className = 'phase-badge phase-' + lastPhase.toLowerCase();
+  document.getElementById('dd-stat-ticks').textContent = results.length;
+  document.getElementById('dd-stat-maxkl').textContent = fmt(Math.max(...results.map(r => r.klDivergence)), 3);
+  document.getElementById('dd-stat-events').textContent = results.filter(r => r.phase === 'DRIFT' || r.phase === 'CRITICAL').length;
+
+  // Time series with phase-colored points
+  const phaseColors = results.map(r => {
+    switch(r.phase) {
+      case 'CRITICAL': return CHART_COLORS.red;
+      case 'DRIFT': return CHART_COLORS.yellow;
+      default: return CHART_COLORS.green;
+    }
+  });
+
+  makeChart('chart-dd-ts', 'line', {
+    labels: results.map(r => r.tick),
+    datasets: [{
+      label: 'Value',
+      data: results.map(r => r.value),
+      borderColor: CHART_COLORS.cyan,
+      borderWidth: 1.5,
+      pointRadius: 3,
+      pointBackgroundColor: phaseColors,
+      fill: false,
+      tension: 0.2
+    }]
+  }, {
+    scales: {
+      x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Time (Ticks)', color: '#8892b0' } },
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'Observed Value', color: '#8892b0' } }
+    }
+  });
+
+  // KL Divergence
+  makeChart('chart-dd-kl', 'line', {
+    labels: results.map(r => r.tick),
+    datasets: [
+      { label: 'KL Divergence', data: results.map(r => r.klDivergence), borderColor: CHART_COLORS.magenta, borderWidth: 2, pointRadius: 0, fill: { target: 'origin', above: 'rgba(255,0,170,0.1)' }, tension: 0.3 },
+      { label: 'Drift Threshold', data: results.map(() => driftThreshold), borderColor: CHART_COLORS.yellow + '88', borderWidth: 1, borderDash: [6,4], pointRadius: 0, fill: false },
+      { label: 'Critical Threshold', data: results.map(() => criticalThreshold), borderColor: CHART_COLORS.red + '88', borderWidth: 1, borderDash: [6,4], pointRadius: 0, fill: false }
+    ]
+  }, {
+    scales: {
+      x: { ...CHART_DEFAULTS.scales.x, title: { display: true, text: 'Time (Ticks)', color: '#8892b0' } },
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'KL Divergence', color: '#8892b0' } }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+connectWS();
+</script>
+</body>
+</html>
