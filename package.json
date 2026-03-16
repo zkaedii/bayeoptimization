@@ -1,0 +1,37 @@
+{
+  "name": "zkaedi-prime-server",
+  "version": "2.0.0",
+  "description": "ZKAEDI PRIME - Recursively Coupled Hamiltonian Intelligence Platform",
+  "main": "dist/server/app.js",
+  "scripts": {
+    "build": "tsc -p src/server/tsconfig.json",
+    "start": "node dist/server/app.js",
+    "start:dev": "npx ts-node src/server/app.ts",
+    "start:legacy": "node app/server.js",
+    "test": "jest --coverage --coverageThreshold='{\"global\":{\"lines\":95}}'",
+    "lint": "eslint src/server/",
+    "typecheck": "tsc -p src/server/tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "pino": "^8.19.0",
+    "pino-http": "^9.0.0",
+    "ws": "^8.16.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.0",
+    "@types/pino-http": "^5.8.4",
+    "@types/supertest": "^6.0.2",
+    "@types/ws": "^8.5.10",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
