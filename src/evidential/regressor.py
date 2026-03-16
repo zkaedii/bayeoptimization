@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 import numpy as np
+from scipy.special import gammaln as _gammaln
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +75,9 @@ class EvidentialRegressor:
         """
         gamma, nu, alpha, beta = self._parse_outputs(outputs)
 
-        aleatoric = beta / (alpha - 1.0)
-        epistemic = beta / (nu * (alpha - 1.0))
+        alpha_minus_one = max(alpha - 1.0, 1e-6)
+        aleatoric = beta / alpha_minus_one
+        epistemic = beta / (nu * alpha_minus_one)
         total = aleatoric + epistemic
 
         return {
@@ -142,18 +144,7 @@ class EvidentialRegressor:
         omega = 2.0 * beta * (1.0 + nu)
         residual = (target - gamma) ** 2
 
-        # NIG NLL
-        nig_loss = (
-            0.5 * np.log(np.pi / nu)
-            - alpha * np.log(omega)
-            + (alpha + 0.5) * np.log(residual * nu + omega)
-        )
-        # Add log-gamma normalisation terms for completeness
-        nig_loss += float(
-            np.log(np.exp(float(self._log_gamma(alpha))) /
-                   np.exp(float(self._log_gamma(alpha + 0.5))) + 1e-30)
-        )
-        # Simplified: use gammaln directly
+        # NIG NLL (using gammaln directly for numerical stability)
         nig_loss_val = float(
             0.5 * np.log(np.pi / nu)
             - alpha * np.log(omega)
@@ -230,6 +221,4 @@ class EvidentialRegressor:
             >>> abs(EvidentialRegressor._log_gamma(1.0) - 0.0) < 1e-10
             True
         """
-        from scipy.special import gammaln as _gammaln
-
         return float(_gammaln(x))

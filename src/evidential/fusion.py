@@ -54,6 +54,11 @@ class MultimodalFusion:
     ) -> None:
         if n_classes < 2:
             raise ValueError(f"n_classes must be >= 2, got {n_classes}")
+        if threshold_consensus >= threshold_uncertain:
+            raise ValueError(
+                f"threshold_consensus ({threshold_consensus}) must be less than "
+                f"threshold_uncertain ({threshold_uncertain})"
+            )
         self.n_classes: int = n_classes
         self.threshold_consensus: float = threshold_consensus
         self.threshold_uncertain: float = threshold_uncertain

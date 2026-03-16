@@ -83,20 +83,14 @@ class OpenSetRecognition:
         predicted_class: int = -1 if rejected else result["predicted_class"]
         label: str = "UNKNOWN" if rejected else str(predicted_class)
 
-        # Update tracking stats
+        # Update tracking stats — always track by would-be predicted class
+        would_be_class: int = result["predicted_class"]
         self._total_seen += 1
+        self._class_seen[would_be_class] += 1
         if rejected:
             self._total_rejected += 1
-        else:
-            self._class_seen[predicted_class] += 1
-
-        # If not rejected, track per-class; if rejected, record under -1
-        if rejected:
-            self._class_seen[-1] = self._class_seen.get(-1, 0) + 1
-            self._class_rejected[-1] = self._class_rejected.get(-1, 0) + 1
-        else:
-            self._class_rejected[predicted_class] = self._class_rejected.get(
-                predicted_class, 0
+            self._class_rejected[would_be_class] = (
+                self._class_rejected.get(would_be_class, 0) + 1
             )
 
         logger.debug(
