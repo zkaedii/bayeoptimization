@@ -483,4 +483,68 @@ describe("Validation edge cases", () => {
       .send({ x: [0.1], extra_field: "ignored" });
     expect(res.status).toBe(200);
   });
+
+  test("wrong types rejected by Zod", async () => {
+    // x should be number[], not string
+    const res1 = await request(app)
+      .post("/api/classify")
+      .send({ x: "not-an-array" });
+    expect(res1.status).toBe(400);
+
+    // x array with wrong element types
+    const res2 = await request(app)
+      .post("/api/regress")
+      .send({ x: ["a", "b"] });
+    expect(res2.status).toBe(400);
+
+    // epsilon must be positive
+    const res3 = await request(app)
+      .post("/api/adversarial/attack")
+      .send({ x: [0.5], y: 0, epsilon: -0.1 });
+    expect(res3.status).toBe(400);
+
+    // threshold must be 0-1
+    const res4 = await request(app)
+      .post("/api/openset")
+      .send({ x: [0.1], threshold: 5.0 });
+    expect(res4.status).toBe(400);
+
+    // k must be positive integer
+    const res5 = await request(app)
+      .post("/api/active/step")
+      .send({ session_id: "test", k: 0 });
+    expect(res5.status).toBe(400);
+
+    // pool must be array of arrays
+    const res6 = await request(app)
+      .post("/api/active/init")
+      .send({ pool: "not-an-array" });
+    expect(res6.status).toBe(400);
+  });
+});
+
+// ═══════════════════════════════════════════════
+//  RATE LIMITING
+// ═══════════════════════════════════════════════
+
+describe("Rate limiting", () => {
+  test("rejects requests after limit exceeded", async () => {
+    // Rate limit is 100 req/min per IP on /api/ routes
+    // Send 101 requests rapidly to trigger the limit
+    const promises = [];
+    for (let i = 0; i < 101; i++) {
+      promises.push(request(app).get("/api/info"));
+    }
+    const responses = await Promise.all(promises);
+    const statuses = responses.map((r) => r.status);
+
+    // At least one should be rate-limited (429)
+    // Note: earlier tests in the suite consume some of the 100 req/min budget
+    const rateLimited = statuses.filter((s) => s === 429);
+    expect(rateLimited.length).toBeGreaterThan(0);
+
+    // Some should succeed (200)
+    const succeeded = statuses.filter((s) => s === 200);
+    expect(succeeded.length).toBeGreaterThan(0);
+  });
 });
