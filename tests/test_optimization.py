@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from scipy.stats import normaltest
 
-from src.optimization.bayesian import BayesianOptimizer, _KERNEL_MAP, _VALID_ACQUISITIONS
+from src.optimization.bayesian import BayesianOptimizer, _VALID_KERNELS, _VALID_ACQUISITIONS
 from src.optimization.prime_bo import ZkaediPrimeBO
 
 # Import the Ackley helper from conftest (available via fixture, but we also
@@ -279,7 +279,7 @@ class TestKernelSwitching:
         assert x_post.shape == (1,)
 
     def test_kernel_map_contains_all(self) -> None:
-        assert set(_KERNEL_MAP.keys()) == {"rbf", "matern52", "matern32"}
+        assert _VALID_KERNELS == {"rbf", "matern52", "matern32"}
 
     def test_valid_acquisitions_set(self) -> None:
         assert _VALID_ACQUISITIONS == {"EI", "PI", "UCB"}

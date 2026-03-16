@@ -18,11 +18,29 @@ from sklearn.gaussian_process.kernels import Kernel, Matern, RBF
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-_KERNEL_MAP: dict[str, Kernel] = {
-    "rbf": RBF(length_scale=1.0, length_scale_bounds=(1e-3, 1e3)),
-    "matern52": Matern(length_scale=1.0, length_scale_bounds=(1e-3, 1e3), nu=2.5),
-    "matern32": Matern(length_scale=1.0, length_scale_bounds=(1e-3, 1e3), nu=1.5),
-}
+def _make_kernel(name: str) -> Kernel:
+    """Create a fresh kernel instance to avoid shared mutable state.
+
+    Args:
+        name: Kernel name — ``"rbf"``, ``"matern52"``, or ``"matern32"``.
+
+    Returns:
+        A new kernel instance with default hyperparameters.
+
+    Example:
+        >>> k = _make_kernel("rbf")
+        >>> isinstance(k, RBF)
+        True
+    """
+    kernels: dict[str, Kernel] = {
+        "rbf": RBF(length_scale=1.0, length_scale_bounds=(1e-3, 1e3)),
+        "matern52": Matern(length_scale=1.0, length_scale_bounds=(1e-3, 1e3), nu=2.5),
+        "matern32": Matern(length_scale=1.0, length_scale_bounds=(1e-3, 1e3), nu=1.5),
+    }
+    return kernels[name]
+
+
+_VALID_KERNELS: set[str] = {"rbf", "matern52", "matern32"}
 
 _VALID_ACQUISITIONS: set[str] = {"EI", "PI", "UCB"}
 
@@ -73,9 +91,9 @@ class BayesianOptimizer:
                 raise ValueError(f"Invalid bound ({lo}, {hi}): lower must be < upper")
 
         kernel_key: str = kernel.lower()
-        if kernel_key not in _KERNEL_MAP:
+        if kernel_key not in _VALID_KERNELS:
             raise ValueError(
-                f"Unknown kernel '{kernel}'. Choose from: {list(_KERNEL_MAP.keys())}"
+                f"Unknown kernel '{kernel}'. Choose from: {sorted(_VALID_KERNELS)}"
             )
 
         if acquisition not in _VALID_ACQUISITIONS:
@@ -83,7 +101,10 @@ class BayesianOptimizer:
                 f"Unknown acquisition '{acquisition}'. Choose from: {_VALID_ACQUISITIONS}"
             )
 
-        self.bounds: list[tuple[float, float]] = bounds
+        if n_warmup < 0:
+            raise ValueError(f"n_warmup must be >= 0, got {n_warmup}")
+
+        self.bounds: list[tuple[float, float]] = list(bounds)
         self.ndim: int = len(bounds)
         self.acquisition_name: str = acquisition
         self.n_warmup: int = n_warmup
@@ -94,7 +115,7 @@ class BayesianOptimizer:
         self.X_obs: np.ndarray = np.empty((0, self.ndim))
         self.y_obs: np.ndarray = np.empty(0)
 
-        selected_kernel: Kernel = _KERNEL_MAP[kernel_key]
+        selected_kernel: Kernel = _make_kernel(kernel_key)
         self.gp: GaussianProcessRegressor = GaussianProcessRegressor(
             kernel=selected_kernel,
             alpha=noise_alpha,
