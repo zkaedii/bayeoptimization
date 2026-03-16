@@ -103,8 +103,8 @@ class ConfusionMatrixDefense:
         for t in thresholds:
             y_pred: np.ndarray = (y_prob >= t).astype(int)
 
-            fp_rate: float = float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg if n_neg > 0 else 0.0
-            fn_rate: float = float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos if n_pos > 0 else 0.0
+            fp_rate: float = (float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg) if n_neg > 0 else 0.0
+            fn_rate: float = (float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos) if n_pos > 0 else 0.0
 
             fn_ok: bool = fn_rate <= self._fn_budget
             fp_ok: bool = fp_rate <= self._fp_budget
@@ -135,7 +135,7 @@ class ConfusionMatrixDefense:
             fn_rates: list[float] = []
             for t in thresholds:
                 y_pred = (y_prob >= t).astype(int)
-                fn_r: float = float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos if n_pos > 0 else 0.0
+                fn_r: float = (float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos) if n_pos > 0 else 0.0
                 fn_rates.append(fn_r)
             self._threshold = float(thresholds[int(np.argmin(fn_rates))])
             logger.warning(
@@ -197,8 +197,8 @@ class ConfusionMatrixDefense:
         n_pos: int = int(np.sum(y_true == 1))
         n_neg: int = int(np.sum(y_true == 0))
 
-        fp_rate: float = float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg if n_neg > 0 else 0.0
-        fn_rate: float = float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos if n_pos > 0 else 0.0
+        fp_rate: float = (float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg) if n_neg > 0 else 0.0
+        fn_rate: float = (float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos) if n_pos > 0 else 0.0
 
         fp_compliant: bool = fp_rate <= self._fp_budget
         fn_compliant: bool = fn_rate <= self._fn_budget

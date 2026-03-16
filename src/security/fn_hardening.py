@@ -116,8 +116,8 @@ class FalseNegativeHardening:
         for t in thresholds:
             y_pred: np.ndarray = (y_prob >= t).astype(int)
 
-            fn_rate: float = float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos if n_pos > 0 else 0.0
-            fp_rate: float = float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg if n_neg > 0 else 0.0
+            fn_rate: float = (float(np.sum((y_pred == 0) & (y_true == 1))) / n_pos) if n_pos > 0 else 0.0
+            fp_rate: float = (float(np.sum((y_pred == 1) & (y_true == 0))) / n_neg) if n_neg > 0 else 0.0
 
             cost: float = self._fn_cost * fn_rate + self._fp_cost * fp_rate
             cost_curve.append((float(t), cost))

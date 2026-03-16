@@ -261,6 +261,10 @@ class DriftDetector:
             combined_min: float = float(min(ref_col.min(), cur_col.min()))
             combined_max: float = float(max(ref_col.max(), cur_col.max()))
 
+            # Guard against constant-valued features (degenerate bin edges)
+            if combined_max - combined_min < 1e-12:
+                continue
+
             edges: np.ndarray = np.linspace(combined_min, combined_max, self._n_bins + 1)
 
             ref_counts: np.ndarray = np.histogram(ref_col, bins=edges)[0].astype(np.float64)
