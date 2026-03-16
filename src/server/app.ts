@@ -257,9 +257,39 @@ interface ActiveSession {
   labeled: Set<number>;
   wUncertainty: number;
   wDiversity: number;
+  createdAt: number;
 }
 
+const MAX_SESSIONS = 1000;
+const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
 const activeSessions = new Map<string, ActiveSession>();
+
+/**
+ * Evict expired sessions and enforce max session cap (LRU by creation time).
+ *
+ * @example
+ * ```ts
+ * evictStaleSessions();
+ * ```
+ */
+function evictStaleSessions(): void {
+  const now = Date.now();
+  for (const [id, session] of activeSessions) {
+    if (now - session.createdAt > SESSION_TTL_MS) {
+      activeSessions.delete(id);
+    }
+  }
+  // If still over cap, evict oldest sessions
+  if (activeSessions.size > MAX_SESSIONS) {
+    const entries = Array.from(activeSessions.entries())
+      .sort((a, b) => a[1].createdAt - b[1].createdAt);
+    const toEvict = entries.slice(0, activeSessions.size - MAX_SESSIONS);
+    for (const [id] of toEvict) {
+      activeSessions.delete(id);
+    }
+  }
+}
 
 // ═══════════════════════════════════════════════
 //  EXPRESS APP
@@ -389,12 +419,14 @@ app.post(
 
 app.post("/api/active/init", validate(ActiveInitSchema), (req: Request, res: Response) => {
   const { pool, w_uncertainty, w_diversity } = req.body as z.infer<typeof ActiveInitSchema>;
+  evictStaleSessions();
   const sessionId = `al_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   activeSessions.set(sessionId, {
     pool,
     labeled: new Set(),
     wUncertainty: w_uncertainty ?? 0.6,
     wDiversity: w_diversity ?? 0.4,
+    createdAt: Date.now(),
   });
   res.json({ session_id: sessionId, pool_size: pool.length });
 });

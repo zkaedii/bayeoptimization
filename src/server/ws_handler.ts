@@ -12,6 +12,10 @@ import { TEST_FUNCTIONS } from "./test_functions";
 
 const logger = pino({ name: "zkaedi-ws" });
 
+/** Per-connection rate limiter: max messages per window. */
+const WS_RATE_LIMIT_WINDOW_MS = 60_000;
+const WS_RATE_LIMIT_MAX = 20;
+
 /** Schema for optimization start messages from client. */
 const StartMessageSchema = z.object({
   type: z.literal("START"),
@@ -376,8 +380,28 @@ export function setupWebSocket(wss: WebSocketServer): void {
   wss.on("connection", (ws: WebSocket) => {
     logger.info("Client connected");
 
+    // Per-connection state
+    let isRunning = false;
+    const messageTimestamps: number[] = [];
+
     ws.on("message", async (data: Buffer | string) => {
       try {
+        // Rate limiting: sliding window
+        const now = Date.now();
+        // Remove timestamps outside the window
+        while (messageTimestamps.length > 0 && now - messageTimestamps[0] > WS_RATE_LIMIT_WINDOW_MS) {
+          messageTimestamps.shift();
+        }
+        if (messageTimestamps.length >= WS_RATE_LIMIT_MAX) {
+          const errorMsg: ErrorMessage = {
+            type: "ERROR",
+            message: "Rate limit exceeded. Max 20 messages per minute.",
+          };
+          ws.send(JSON.stringify(errorMsg));
+          return;
+        }
+        messageTimestamps.push(now);
+
         const raw = JSON.parse(data.toString());
         const parsed = StartMessageSchema.safeParse(raw);
 
@@ -390,7 +414,22 @@ export function setupWebSocket(wss: WebSocketServer): void {
           return;
         }
 
-        await runOptimization(ws, parsed.data);
+        // Guard against concurrent optimization runs on same socket
+        if (isRunning) {
+          const errorMsg: ErrorMessage = {
+            type: "ERROR",
+            message: "An optimization is already running on this connection.",
+          };
+          ws.send(JSON.stringify(errorMsg));
+          return;
+        }
+
+        isRunning = true;
+        try {
+          await runOptimization(ws, parsed.data);
+        } finally {
+          isRunning = false;
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         logger.error({ err }, "WebSocket error");

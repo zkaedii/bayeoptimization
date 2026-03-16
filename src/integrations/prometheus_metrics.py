@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Singleton registry & lock
 # ---------------------------------------------------------------------------
 _REGISTRY: Optional[CollectorRegistry] = None
-_LOCK = threading.Lock()
+_LOCK = threading.RLock()
 
 
 def _get_registry() -> CollectorRegistry:
@@ -110,8 +110,24 @@ class PrometheusMetrics:
 
             metrics = PrometheusMetrics()
         """
-        if self.__class__._init_done:
-            return
+        with _LOCK:
+            if self.__class__._init_done:
+                return
+            self._init_locked(registry)
+
+    def _init_locked(self, registry: Optional[CollectorRegistry] = None) -> None:
+        """Perform actual initialisation under lock.
+
+        Params:
+            registry: Optional custom ``CollectorRegistry``.
+
+        Returns:
+            None
+
+        Example::
+
+            # Called internally by __init__
+        """
         self._registry: CollectorRegistry = registry or _get_registry()
         self._server_started: bool = False
 

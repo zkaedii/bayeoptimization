@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-_LOCK = threading.Lock()
+_LOCK = threading.RLock()
 
 
 class OtelTracer:
@@ -117,9 +117,33 @@ class OtelTracer:
 
             tracer = OtelTracer(service_name="my-svc")
         """
-        if self.__class__._init_done:
-            return
+        with _LOCK:
+            if self.__class__._init_done:
+                return
+            self._init_locked(service_name, service_version, prime_phase, otlp_endpoint)
 
+    def _init_locked(
+        self,
+        service_name: str,
+        service_version: str,
+        prime_phase: str,
+        otlp_endpoint: Optional[str],
+    ) -> None:
+        """Perform actual initialisation under lock.
+
+        Params:
+            service_name: Logical service name.
+            service_version: Semantic version string.
+            prime_phase: PRIME phase label.
+            otlp_endpoint: Optional OTLP endpoint override.
+
+        Returns:
+            None
+
+        Example::
+
+            # Called internally by __init__
+        """
         self._service_name: str = service_name
         self._service_version: str = service_version
         self._prime_phase: str = prime_phase

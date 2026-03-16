@@ -208,6 +208,9 @@ class MLflowTracker:
         Params:
             params: Mapping of parameter names to values.
 
+        Raises:
+            RuntimeError: If no active run exists.
+
         Returns:
             None
 
@@ -215,6 +218,8 @@ class MLflowTracker:
 
             tracker.log_params({"learning_rate": 0.01, "n_iter": 100})
         """
+        if self._run_id is None:
+            raise RuntimeError("Call start_run() before log_params().")
         mlflow.log_params(params)
         logger.debug("Logged %d params", len(params))
 
@@ -232,6 +237,8 @@ class MLflowTracker:
 
             tracker.log_metrics({"rmse": 0.12, "r2": 0.95}, step=10)
         """
+        if self._run_id is None:
+            raise RuntimeError("Call start_run() before log_metrics().")
         mlflow.log_metrics(metrics, step=step)
         logger.debug("Logged %d metrics at step %d", len(metrics), step)
 
@@ -283,10 +290,12 @@ class MLflowTracker:
             "gp_amplitude": gp_hyperparams.get("amplitude", 0.0),
             "gp_noise_alpha": gp_hyperparams.get("noise_alpha", 0.0),
         }
+        if self._run_id is None:
+            raise RuntimeError("Call start_run() before log_bo_step().")
         mlflow.log_metrics(metrics, step=step)
 
-        # Store candidate as a param keyed by step (params are strings).
-        mlflow.log_param(f"x_candidate_step_{step}", str(list(x_candidate)))
+        # Store candidate as a tag (tags are upsert-safe, unlike params).
+        mlflow.set_tag(f"x_candidate_step_{step}", str(list(x_candidate)))
         logger.debug("Logged BO step %d", step)
 
     # ------------------------------------------------------------------
@@ -325,6 +334,8 @@ class MLflowTracker:
                 beta=1.5,
             )
         """
+        if self._run_id is None:
+            raise RuntimeError("Call start_run() before log_prime_state().")
         metrics: Dict[str, float] = {
             "prime_variance": variance,
             "prime_eta": eta,

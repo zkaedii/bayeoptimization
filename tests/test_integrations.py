@@ -799,9 +799,17 @@ class TestMLflowTrackerLogParams:
         modules, mocks = _build_mlflow_mocks()
         mod = _import_mlflow_tracker(modules)
         tracker = mod.MLflowTracker()
+        tracker._run_id = "test-run"
         params = {"learning_rate": 0.01, "n_iter": 100}
         tracker.log_params(params)
         mocks["mlflow"].log_params.assert_called_once_with(params)
+
+    def test_log_params_raises_without_run(self) -> None:
+        modules, mocks = _build_mlflow_mocks()
+        mod = _import_mlflow_tracker(modules)
+        tracker = mod.MLflowTracker()
+        with pytest.raises(RuntimeError, match="start_run"):
+            tracker.log_params({"x": 1})
 
 
 class TestMLflowTrackerLogMetrics:
@@ -811,9 +819,17 @@ class TestMLflowTrackerLogMetrics:
         modules, mocks = _build_mlflow_mocks()
         mod = _import_mlflow_tracker(modules)
         tracker = mod.MLflowTracker()
+        tracker._run_id = "test-run"
         metrics = {"rmse": 0.12, "r2": 0.95}
         tracker.log_metrics(metrics, step=10)
         mocks["mlflow"].log_metrics.assert_called_once_with(metrics, step=10)
+
+    def test_log_metrics_raises_without_run(self) -> None:
+        modules, mocks = _build_mlflow_mocks()
+        mod = _import_mlflow_tracker(modules)
+        tracker = mod.MLflowTracker()
+        with pytest.raises(RuntimeError, match="start_run"):
+            tracker.log_metrics({"x": 1.0}, step=0)
 
 
 class TestMLflowTrackerLogBoStep:
@@ -823,6 +839,7 @@ class TestMLflowTrackerLogBoStep:
         modules, mocks = _build_mlflow_mocks()
         mod = _import_mlflow_tracker(modules)
         tracker = mod.MLflowTracker()
+        tracker._run_id = "test-run"
 
         tracker.log_bo_step(
             step=5,
@@ -846,16 +863,27 @@ class TestMLflowTrackerLogBoStep:
         assert logged_metrics["gp_noise_alpha"] == 0.01
         assert metrics_call[1]["step"] == 5
 
-        # log_param should be called with x_candidate
-        mocks["mlflow"].log_param.assert_called_once_with(
+        # set_tag should be called with x_candidate (upsert-safe)
+        mocks["mlflow"].set_tag.assert_any_call(
             "x_candidate_step_5", str([0.3, 0.7])
         )
+
+    def test_log_bo_step_raises_without_run(self) -> None:
+        modules, mocks = _build_mlflow_mocks()
+        mod = _import_mlflow_tracker(modules)
+        tracker = mod.MLflowTracker()
+        with pytest.raises(RuntimeError, match="start_run"):
+            tracker.log_bo_step(
+                step=0, x_candidate=[1.0], y_observed=0.5,
+                acquisition_value=0.1, gp_hyperparams={},
+            )
 
     def test_log_bo_step_missing_hyperparams(self) -> None:
         """Missing GP hyperparams should default to 0.0."""
         modules, mocks = _build_mlflow_mocks()
         mod = _import_mlflow_tracker(modules)
         tracker = mod.MLflowTracker()
+        tracker._run_id = "test-run"
 
         tracker.log_bo_step(
             step=0,
@@ -878,6 +906,7 @@ class TestMLflowTrackerLogPrimeState:
         modules, mocks = _build_mlflow_mocks()
         mod = _import_mlflow_tracker(modules)
         tracker = mod.MLflowTracker()
+        tracker._run_id = "test-run"
 
         tracker.log_prime_state(
             step=10,
