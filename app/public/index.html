@@ -1,0 +1,2397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZKAEDI PRIME Interactive Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #0f1538;
+  --bg-panel: rgba(15, 21, 56, 0.7);
+  --bg-card: rgba(20, 28, 68, 0.6);
+  --neon-cyan: #00f0ff;
+  --neon-magenta: #ff00aa;
+  --neon-green: #00ff88;
+  --neon-yellow: #ffee00;
+  --neon-orange: #ff6600;
+  --neon-red: #ff0044;
+  --text-primary: #e0e6ff;
+  --text-secondary: #8892b0;
+  --text-dim: #4a5280;
+  --border-glow: rgba(0, 240, 255, 0.3);
+  --glass-bg: rgba(15, 21, 56, 0.65);
+  --glass-border: rgba(0, 240, 255, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(255, 0, 170, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 15s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Top nav */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  background: rgba(10, 14, 39, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-right: 40px;
+  white-space: nowrap;
+  text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.nav-tab {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+
+.nav-tab:hover {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.08);
+}
+
+.nav-tab.active {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05);
+  animation: tabGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes tabGlow {
+  0% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 15px rgba(0, 240, 255, 0.03); }
+  100% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 25px rgba(0, 240, 255, 0.06); }
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 20%;
+  width: 60%;
+  height: 2px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+  border-radius: 2px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  white-space: nowrap;
+}
+
+.connection-status .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.connection-status.disconnected {
+  background: rgba(255, 0, 68, 0.08);
+  border-color: rgba(255, 0, 68, 0.3);
+}
+
+.connection-status.disconnected .dot {
+  background: var(--neon-red);
+  box-shadow: 0 0 8px var(--neon-red);
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Main content */
+.main-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.module-panel { display: none; }
+.module-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass panel */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.glass-panel h3::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: var(--neon-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+/* Controls */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+select, input[type="number"] {
+  padding: 8px 12px;
+  background: rgba(10, 14, 39, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.3s;
+  min-width: 140px;
+}
+
+select:focus, input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 140px;
+  height: 4px;
+  background: rgba(0, 240, 255, 0.15);
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.range-value {
+  font-size: 13px;
+  color: var(--neon-cyan);
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+}
+
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--neon-cyan), #0088aa);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 240, 255, 0.5);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 0, 170, 0.15);
+  color: var(--neon-magenta);
+  border: 1px solid rgba(255, 0, 170, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 0, 170, 0.25);
+  box-shadow: 0 4px 20px rgba(255, 0, 170, 0.2);
+}
+
+/* Charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+}
+
+.chart-card h4 {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value.magenta { color: var(--neon-magenta); }
+.stat-value.green { color: var(--neon-green); }
+.stat-value.yellow { color: var(--neon-yellow); }
+
+.phase-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.phase-badge.warmup {
+  background: rgba(255, 238, 0, 0.15);
+  color: var(--neon-yellow);
+  border: 1px solid rgba(255, 238, 0, 0.3);
+}
+
+.phase-badge.optimizing {
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.phase-badge.complete {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--neon-green);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+/* Sub tabs */
+.sub-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.sub-tab {
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.sub-tab.active {
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--neon-cyan);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+/* Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.data-table th {
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 10px;
+}
+
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:hover td {
+  background: rgba(0, 240, 255, 0.03);
+}
+
+/* Gauge */
+.gauge-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding: 20px;
+}
+
+.gauge {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.gauge svg {
+  transform: rotate(-90deg);
+}
+
+.gauge-track {
+  fill: none;
+  stroke: rgba(0, 240, 255, 0.1);
+  stroke-width: 10;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.gauge-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-label .value {
+  font-size: 28px;
+  font-weight: 800;
+  display: block;
+}
+
+.gauge-label .title {
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Meter */
+.meter-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 240, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+}
+
+/* Loading spinner */
+.spinner {
+  display: none;
+  width: 24px; height: 24px;
+  border: 3px solid rgba(0, 240, 255, 0.2);
+  border-top-color: var(--neon-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner.active { display: inline-block; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Drift phase colors */
+.phase-stable { color: var(--neon-green); }
+.phase-drift { color: var(--neon-yellow); }
+.phase-critical { color: var(--neon-red); }
+.phase-warmup-text { color: var(--text-secondary); }
+
+/* Phase indicator animated */
+.phase-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.phase-indicator.stable {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: var(--neon-green);
+}
+
+.phase-indicator.drift {
+  background: rgba(255, 238, 0, 0.1);
+  border: 1px solid rgba(255, 238, 0, 0.3);
+  color: var(--neon-yellow);
+  animation: driftPulse 1s ease-in-out infinite alternate;
+}
+
+.phase-indicator.critical {
+  background: rgba(255, 0, 68, 0.1);
+  border: 1px solid rgba(255, 0, 68, 0.3);
+  color: var(--neon-red);
+  animation: criticalPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes driftPulse {
+  0% { box-shadow: 0 0 10px rgba(255, 238, 0, 0.1); }
+  100% { box-shadow: 0 0 20px rgba(255, 238, 0, 0.3); }
+}
+
+@keyframes criticalPulse {
+  0% { box-shadow: 0 0 10px rgba(255, 0, 68, 0.2); }
+  100% { box-shadow: 0 0 30px rgba(255, 0, 68, 0.5); }
+}
+
+.pulse-icon {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  animation: dotPulse 1s ease-in-out infinite;
+}
+
+.pulse-icon.green { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+.pulse-icon.yellow { background: var(--neon-yellow); box-shadow: 0 0 10px var(--neon-yellow); }
+.pulse-icon.red { background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .navbar { padding: 0 12px; }
+  .nav-tab { padding: 8px 12px; font-size: 11px; }
+  .controls-row { gap: 10px; }
+  .gauge-container { gap: 20px; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.4); }
+
+/* Robustness bar */
+.robustness-bar-container {
+  margin-top: 16px;
+}
+
+.robustness-bar-bg {
+  width: 100%;
+  height: 24px;
+  background: rgba(0, 240, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.robustness-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.8s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #000;
+}
+
+.prob-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.prob-col h4 {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.prob-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.prob-bar-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  width: 20px;
+  font-weight: 600;
+}
+
+.prob-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 240, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.prob-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.prob-bar-val {
+  font-size: 10px;
+  color: var(--text-secondary);
+  width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.max-height-table {
+  max-height: 300px;
+  overflow-y: auto;
+}
+</style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar">
+  <div class="logo">ZKAEDI PRIME</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-module="bayesian" onclick="switchModule('bayesian')">Bayesian Optimization</button>
+    <button class="nav-tab" data-module="evidential" onclick="switchModule('evidential')">Evidential Learning</button>
+    <button class="nav-tab" data-module="adversarial" onclick="switchModule('adversarial')">Adversarial Lab</button>
+    <button class="nav-tab" data-module="active" onclick="switchModule('active')">Active Learning</button>
+    <button class="nav-tab" data-module="drift" onclick="switchModule('drift')">Drift Detection</button>
+  </div>
+  <div class="connection-status disconnected" id="connStatus">
+    <span class="dot"></span>
+    <span id="connText">OFFLINE</span>
+  </div>
+</nav>
+
+<div class="main-content">
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PANEL 1: BAYESIAN OPTIMIZATION        -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="module-panel active" id="panel-bayesian">
+    <div class="glass-panel">
+      <h3>Optimization Controls</h3>
+      <div class="controls-row">
+        <div class="control-group">
+          <label>Objective Function</label>
+          <select id="bo-objective">
+            <option value="ackley">Ackley</option>
+            <option value="rastrigin">Rastrigin</option>
+            <option value="rosenbrock">Rosenbrock</option>
+            <option value="schwefel">Schwefel</option>
+            <option value="himmelblau">Himmelblau</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Acquisition Function</label>
+          <select id="bo-acquisition">
+            <option value="EI">Expected Improvement (EI)</option>
+            <option value="PI">Probability of Improvement (PI)</option>
+            <option value="UCB">Upper Confidence Bound (UCB)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Kernel</label>
+          <select id="bo-kernel">
+            <option value="rbf">RBF (Squared Exponential)</option>
+            <option value="matern">Matern 5/2</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Iterations: <span class="range-value" id="bo-iter-val">40</span></label>
+          <input type="range" id="bo-iterations" min="10" max="100" value="40" oninput="document.getElementById('bo-iter-val').textContent=this.value">
+        </div>
+        <div class="control-group">
+          <label>Warmup: <span class="range-value" id="bo-warmup-val">5</span></label>
+          <input type="range" id="bo-warmup" min="3" max="10" value="5" oninput="document.getElementById('bo-warmup-val').textContent=this.value">
+        </div>
+        <div class="control-group">
+          <button class="btn btn-primary" id="bo-launch" onclick="launchOptimization()">Launch Optimization</button>
+        </div>
+        <div class="spinner" id="bo-spinner"></div>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <h3>Live Statistics</h3>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Iteration</span>
+          <span class="stat-value" id="bo-stat-iter">--</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Best Value</span>
+          <span class="stat-value green" id="bo-stat-best">--</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Current Y</span>
+          <span class="stat-value" id="bo-stat-y">--</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Best X</span>
+          <span class="stat-value magenta" id="bo-stat-bestx" style="font-size:14px">--</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Phase</span>
+          <span class="phase-badge warmup" id="bo-phase">WAITING</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h4>Convergence (Best Y)</h4>
+        <div class="chart-container"><canvas id="chart-convergence"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Acquisition Values</h4>
+        <div class="chart-container"><canvas id="chart-acquisition"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>GP Mean &amp; Variance</h4>
+        <div class="chart-container"><canvas id="chart-gp"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Hamiltonian Energy</h4>
+        <div class="chart-container"><canvas id="chart-hamiltonian"></canvas></div>
+      </div>
+    </div>
+
+    <div class="glass-panel" style="margin-top:16px">
+      <h3>Evaluated Points (x0 vs x1)</h3>
+      <div class="chart-container" style="height:280px"><canvas id="chart-scatter"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PANEL 2: EVIDENTIAL LEARNING          -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="module-panel" id="panel-evidential">
+    <div class="glass-panel">
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="switchSubTab('ev', 'classification')">Classification</button>
+        <button class="sub-tab" onclick="switchSubTab('ev', 'regression')">Regression</button>
+        <button class="sub-tab" onclick="switchSubTab('ev', 'openset')">Open-Set Recognition</button>
+      </div>
+
+      <!-- Classification sub-panel -->
+      <div class="sub-panel active" id="ev-classification">
+        <div class="controls-row" style="margin-bottom:16px">
+          <div class="control-group">
+            <label>Batch Size</label>
+            <input type="number" id="ev-cls-batch" value="20" min="5" max="50">
+          </div>
+          <div class="control-group">
+            <label>Classes</label>
+            <input type="number" id="ev-cls-classes" value="5" min="3" max="10">
+          </div>
+          <div class="control-group">
+            <button class="btn btn-primary" onclick="runClassification()">Run Classification</button>
+          </div>
+          <div class="spinner" id="ev-cls-spinner"></div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h4>Class Probabilities with Uncertainty</h4>
+            <div class="chart-container"><canvas id="chart-ev-probs"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h4>Dissonance Meter</h4>
+            <div class="chart-container"><canvas id="chart-ev-dissonance"></canvas></div>
+          </div>
+        </div>
+        <div class="glass-panel" style="margin-top:16px;padding:12px">
+          <h3>Batch Results</h3>
+          <div class="max-height-table">
+            <table class="data-table" id="ev-cls-table">
+              <thead>
+                <tr><th>#</th><th>True</th><th>Predicted</th><th>Confidence</th><th>Uncertainty</th><th>Dissonance</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regression sub-panel -->
+      <div class="sub-panel" id="ev-regression">
+        <div class="controls-row" style="margin-bottom:16px">
+          <div class="control-group">
+            <label>Points</label>
+            <input type="number" id="ev-reg-points" value="50" min="20" max="100">
+          </div>
+          <div class="control-group">
+            <button class="btn btn-primary" onclick="runRegression()">Run Regression</button>
+          </div>
+          <div class="spinner" id="ev-reg-spinner"></div>
+        </div>
+        <div class="chart-card">
+          <h4>Prediction with Epistemic + Aleatoric Uncertainty Bands</h4>
+          <div class="chart-container" style="height:320px"><canvas id="chart-ev-regression"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Open-Set sub-panel -->
+      <div class="sub-panel" id="ev-openset">
+        <div class="controls-row" style="margin-bottom:16px">
+          <div class="control-group">
+            <label>Known Samples</label>
+            <input type="number" id="ev-os-known" value="15" min="5" max="30">
+          </div>
+          <div class="control-group">
+            <label>Unknown Samples</label>
+            <input type="number" id="ev-os-unknown" value="5" min="2" max="15">
+          </div>
+          <div class="control-group">
+            <label>Rejection Threshold: <span class="range-value" id="ev-os-thresh-val">0.60</span></label>
+            <input type="range" id="ev-os-threshold" min="0.1" max="0.95" step="0.05" value="0.6" oninput="document.getElementById('ev-os-thresh-val').textContent=parseFloat(this.value).toFixed(2)">
+          </div>
+          <div class="control-group">
+            <button class="btn btn-primary" onclick="runOpenSet()">Run Open-Set</button>
+          </div>
+          <div class="spinner" id="ev-os-spinner"></div>
+        </div>
+        <div class="chart-card">
+          <h4>Known vs Unknown Detections</h4>
+          <div class="chart-container" style="height:320px"><canvas id="chart-ev-openset"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PANEL 3: ADVERSARIAL LAB              -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="module-panel" id="panel-adversarial">
+    <div class="glass-panel">
+      <h3>Adversarial Robustness Controls</h3>
+      <div class="controls-row">
+        <div class="control-group">
+          <label>Epsilon: <span class="range-value" id="adv-eps-val">0.10</span></label>
+          <input type="range" id="adv-epsilon" min="0.01" max="0.5" step="0.01" value="0.1" oninput="document.getElementById('adv-eps-val').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+        <div class="control-group">
+          <label>Smoothing Strength: <span class="range-value" id="adv-smooth-val">0.30</span></label>
+          <input type="range" id="adv-smoothing" min="0.1" max="1.0" step="0.05" value="0.3" oninput="document.getElementById('adv-smooth-val').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+        <div class="control-group">
+          <label>Samples</label>
+          <input type="number" id="adv-samples" value="30" min="10" max="100">
+        </div>
+        <div class="control-group">
+          <button class="btn btn-primary" onclick="runAdversarial()">Evaluate Robustness</button>
+        </div>
+        <div class="spinner" id="adv-spinner"></div>
+      </div>
+    </div>
+
+    <div class="gauge-container glass-panel">
+      <div class="gauge" id="gauge-attack">
+        <svg viewBox="0 0 160 160">
+          <circle class="gauge-track" cx="80" cy="80" r="65"/>
+          <circle class="gauge-fill" id="gauge-attack-fill" cx="80" cy="80" r="65"
+            stroke="var(--neon-red)" stroke-dasharray="408.4" stroke-dashoffset="408.4"/>
+        </svg>
+        <div class="gauge-label">
+          <span class="value" id="gauge-attack-val" style="color:var(--neon-red)">--%</span>
+          <span class="title">Attack Success</span>
+        </div>
+      </div>
+      <div class="gauge" id="gauge-defense">
+        <svg viewBox="0 0 160 160">
+          <circle class="gauge-track" cx="80" cy="80" r="65"/>
+          <circle class="gauge-fill" id="gauge-defense-fill" cx="80" cy="80" r="65"
+            stroke="var(--neon-green)" stroke-dasharray="408.4" stroke-dashoffset="408.4"/>
+        </svg>
+        <div class="gauge-label">
+          <span class="value" id="gauge-defense-val" style="color:var(--neon-green)">--%</span>
+          <span class="title">Defense Success</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <h3>Probability Comparison (Sample #1)</h3>
+      <div class="prob-comparison" id="adv-prob-comparison">
+        <div class="prob-col" id="adv-prob-original">
+          <h4>Original</h4>
+        </div>
+        <div class="prob-col" id="adv-prob-adversarial">
+          <h4>Adversarial</h4>
+        </div>
+        <div class="prob-col" id="adv-prob-defended">
+          <h4>Defended</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <h3>Robustness Score</h3>
+      <div class="robustness-bar-container">
+        <div class="robustness-bar-bg">
+          <div class="robustness-bar-fill" id="adv-robustness-bar" style="width:0%;background:linear-gradient(90deg,var(--neon-red),var(--neon-yellow),var(--neon-green))"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text-dim)">
+          <span>VULNERABLE</span>
+          <span id="adv-robustness-val" style="color:var(--neon-cyan);font-weight:700">--</span>
+          <span>ROBUST</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PANEL 4: ACTIVE LEARNING              -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="module-panel" id="panel-active">
+    <div class="glass-panel">
+      <h3>Active Learning Controls</h3>
+      <div class="controls-row">
+        <div class="control-group">
+          <label>Batch Size: <span class="range-value" id="al-batch-val">5</span></label>
+          <input type="range" id="al-batchsize" min="1" max="20" value="5" oninput="document.getElementById('al-batch-val').textContent=this.value">
+        </div>
+        <div class="control-group">
+          <label>Samples</label>
+          <input type="number" id="al-samples" value="200" min="50" max="500">
+        </div>
+        <div class="control-group">
+          <label>Classes</label>
+          <input type="number" id="al-classes" value="3" min="2" max="6">
+        </div>
+        <div class="control-group">
+          <button class="btn btn-primary" onclick="initActiveLearning()">Initialize</button>
+        </div>
+        <div class="control-group">
+          <button class="btn btn-secondary" id="al-next-btn" onclick="stepActiveLearning()" disabled>Next Batch</button>
+        </div>
+        <div class="control-group">
+          <button class="btn btn-secondary" id="al-auto-btn" onclick="autoRunActiveLearning()" disabled>Auto-Run</button>
+        </div>
+        <div class="spinner" id="al-spinner"></div>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Iteration</span>
+          <span class="stat-value" id="al-stat-iter">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Labeled</span>
+          <span class="stat-value green" id="al-stat-labeled">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Unlabeled</span>
+          <span class="stat-value" id="al-stat-unlabeled">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-value magenta" id="al-stat-accuracy">--%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h4>Data Points (Labeled vs Unlabeled)</h4>
+        <div class="chart-container" style="height:300px"><canvas id="chart-al-scatter"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Learning Curve (Accuracy vs Labeled Count)</h4>
+        <div class="chart-container" style="height:300px"><canvas id="chart-al-curve"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PANEL 5: DRIFT DETECTION              -->
+  <!-- ══════════════════════════════════════ -->
+  <div class="module-panel" id="panel-drift">
+    <div class="glass-panel">
+      <h3>Drift Detection Controls</h3>
+      <div class="controls-row">
+        <div class="control-group">
+          <label>Ticks</label>
+          <input type="number" id="drift-ticks" value="150" min="50" max="500">
+        </div>
+        <div class="control-group">
+          <label>Window Size</label>
+          <input type="number" id="drift-window" value="20" min="5" max="50">
+        </div>
+        <div class="control-group">
+          <label>Drift Threshold</label>
+          <input type="number" id="drift-thresh" value="0.3" min="0.05" max="1" step="0.05">
+        </div>
+        <div class="control-group">
+          <label>Critical Threshold</label>
+          <input type="number" id="drift-critical" value="0.6" min="0.1" max="2" step="0.05">
+        </div>
+        <div class="control-group">
+          <button class="btn btn-primary" onclick="runDriftScenario()">Run Scenario</button>
+        </div>
+        <div class="spinner" id="drift-spinner"></div>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <h3>Current Phase</h3>
+      <div class="phase-indicator stable" id="drift-phase-indicator">
+        <span class="pulse-icon green"></span>
+        <span id="drift-phase-text">STABLE</span>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card" style="grid-column: 1 / -1">
+        <h4>Time Series with Phase Regions</h4>
+        <div class="chart-container" style="height:280px"><canvas id="chart-drift-ts"></canvas></div>
+      </div>
+      <div class="chart-card" style="grid-column: 1 / -1">
+        <h4>KL Divergence</h4>
+        <div class="chart-container" style="height:220px"><canvas id="chart-drift-kl"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ═══════════════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════════════
+
+const charts = {};
+let ws = null;
+let wsConnected = false;
+let alAutoRunning = false;
+let alAutoInterval = null;
+
+const CHART_COLORS = {
+  cyan: '#00f0ff',
+  magenta: '#ff00aa',
+  green: '#00ff88',
+  yellow: '#ffee00',
+  orange: '#ff6600',
+  red: '#ff0044',
+  purple: '#aa44ff',
+  cyanAlpha: 'rgba(0, 240, 255, 0.3)',
+  magentaAlpha: 'rgba(255, 0, 170, 0.3)',
+  greenAlpha: 'rgba(0, 255, 136, 0.3)',
+};
+
+const CLASS_COLORS = ['#00f0ff', '#ff00aa', '#00ff88', '#ffee00', '#ff6600', '#aa44ff', '#ff0044', '#44aaff', '#ff8844', '#88ff44'];
+
+// Chart.js global defaults
+Chart.defaults.color = '#8892b0';
+Chart.defaults.borderColor = 'rgba(0, 240, 255, 0.08)';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.animation.duration = 300;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 12;
+
+// ═══════════════════════════════════════════════════
+//  MODULE SWITCHING
+// ═══════════════════════════════════════════════════
+
+function switchModule(name) {
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector('[data-module="' + name + '"]').classList.add('active');
+}
+
+function switchSubTab(prefix, name) {
+  const parent = document.getElementById('panel-evidential');
+  parent.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(prefix + '-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILITY FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+function fmt(n, d = 4) {
+  if (n == null || isNaN(n)) return '--';
+  return Number(n).toFixed(d);
+}
+
+function destroyChart(key) {
+  if (charts[key]) {
+    charts[key].destroy();
+    delete charts[key];
+  }
+}
+
+function showSpinner(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function hideSpinner(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+async function apiFetch(url, body = {}) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════
+//  WEBSOCKET CONNECTION
+// ═══════════════════════════════════════════════════
+
+function connectWebSocket() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = protocol + '//' + location.host;
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    wsConnected = true;
+    const status = document.getElementById('connStatus');
+    status.classList.remove('disconnected');
+    document.getElementById('connText').textContent = 'CONNECTED';
+  };
+
+  ws.onclose = () => {
+    wsConnected = false;
+    const status = document.getElementById('connStatus');
+    status.classList.add('disconnected');
+    document.getElementById('connText').textContent = 'OFFLINE';
+    setTimeout(connectWebSocket, 2000);
+  };
+
+  ws.onerror = () => {
+    ws.close();
+  };
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    handleWSMessage(msg);
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  BAYESIAN OPTIMIZATION
+// ═══════════════════════════════════════════════════
+
+const boData = {
+  iterations: [],
+  bestY: [],
+  acquisitionValues: [],
+  gpMean: [],
+  gpVariance: [],
+  hamiltonianEnergy: [],
+  pointsX0: [],
+  pointsX1: [],
+  pointsY: [],
+  phases: [],
+  warmupCount: 0
+};
+
+function resetBoData() {
+  boData.iterations = [];
+  boData.bestY = [];
+  boData.acquisitionValues = [];
+  boData.gpMean = [];
+  boData.gpVariance = [];
+  boData.hamiltonianEnergy = [];
+  boData.pointsX0 = [];
+  boData.pointsX1 = [];
+  boData.pointsY = [];
+  boData.phases = [];
+  boData.warmupCount = 0;
+}
+
+function launchOptimization() {
+  if (!wsConnected) {
+    alert('WebSocket not connected. Please wait...');
+    return;
+  }
+
+  resetBoData();
+  const btn = document.getElementById('bo-launch');
+  btn.disabled = true;
+  showSpinner('bo-spinner');
+
+  const config = {
+    objective: document.getElementById('bo-objective').value,
+    acquisitionFunction: document.getElementById('bo-acquisition').value,
+    kernel: document.getElementById('bo-kernel').value,
+    nIter: parseInt(document.getElementById('bo-iterations').value),
+    nWarmup: parseInt(document.getElementById('bo-warmup').value),
+    bounds: [[-5, 5], [-5, 5]],
+    eta: 0.1,
+    gamma: 0.95
+  };
+
+  boData.warmupCount = config.nWarmup;
+
+  ws.send(JSON.stringify({ type: 'start_optimization', config }));
+}
+
+function handleWSMessage(msg) {
+  switch (msg.type) {
+    case 'optimization_started':
+      updateBoPhase('WARMUP');
+      break;
+
+    case 'optimization_step':
+      handleOptimizationStep(msg.step);
+      break;
+
+    case 'optimization_complete':
+      handleOptimizationComplete(msg);
+      break;
+
+    case 'error':
+      console.error('WS Error:', msg.message);
+      hideSpinner('bo-spinner');
+      document.getElementById('bo-launch').disabled = false;
+      break;
+  }
+}
+
+function handleOptimizationStep(step) {
+  boData.iterations.push(step.iteration);
+  boData.bestY.push(step.bestY);
+  boData.acquisitionValues.push(step.acquisitionValue);
+  boData.gpMean.push(step.gpMean);
+  boData.gpVariance.push(step.gpVariance);
+  boData.hamiltonianEnergy.push(step.hamiltonianEnergy);
+  boData.pointsX0.push(step.x[0]);
+  boData.pointsX1.push(step.x[1]);
+  boData.pointsY.push(step.y);
+  boData.phases.push(step.phase);
+
+  // Update stats
+  document.getElementById('bo-stat-iter').textContent = step.iteration;
+  document.getElementById('bo-stat-best').textContent = fmt(step.bestY);
+  document.getElementById('bo-stat-y').textContent = fmt(step.y);
+  document.getElementById('bo-stat-bestx').textContent = '[' + fmt(step.bestX[0], 3) + ', ' + fmt(step.bestX[1], 3) + ']';
+
+  if (step.phase === 'warmup') {
+    updateBoPhase('WARMUP');
+  } else {
+    updateBoPhase('OPTIMIZING');
+  }
+
+  updateBoCharts();
+}
+
+function handleOptimizationComplete(msg) {
+  document.getElementById('bo-stat-best').textContent = fmt(msg.bestY);
+  document.getElementById('bo-stat-bestx').textContent = '[' + fmt(msg.bestX[0], 3) + ', ' + fmt(msg.bestX[1], 3) + ']';
+  updateBoPhase('COMPLETE');
+  hideSpinner('bo-spinner');
+  document.getElementById('bo-launch').disabled = false;
+  updateBoCharts();
+}
+
+function updateBoPhase(phase) {
+  const el = document.getElementById('bo-phase');
+  el.textContent = phase;
+  el.className = 'phase-badge';
+  if (phase === 'WARMUP') el.classList.add('warmup');
+  else if (phase === 'OPTIMIZING') el.classList.add('optimizing');
+  else if (phase === 'COMPLETE') el.classList.add('complete');
+}
+
+function updateBoCharts() {
+  const labels = boData.iterations.map(String);
+  const warmup = boData.warmupCount;
+
+  // --- Convergence chart ---
+  destroyChart('convergence');
+  const convCtx = document.getElementById('chart-convergence').getContext('2d');
+  charts.convergence = new Chart(convCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Best Y',
+          data: boData.bestY,
+          borderColor: CHART_COLORS.green,
+          backgroundColor: CHART_COLORS.greenAlpha,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        annotation: undefined,
+        legend: { display: true }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Iteration' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'Best Y' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    },
+    plugins: [{
+      id: 'warmupHighlight',
+      beforeDraw(chart) {
+        if (warmup <= 0) return;
+        const ctx = chart.ctx;
+        const xAxis = chart.scales.x;
+        const yAxis = chart.scales.y;
+        const xEnd = xAxis.getPixelForValue(warmup - 1);
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 238, 0, 0.06)';
+        ctx.fillRect(xAxis.left, yAxis.top, xEnd - xAxis.left, yAxis.bottom - yAxis.top);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // --- Acquisition chart ---
+  destroyChart('acquisition');
+  const acqCtx = document.getElementById('chart-acquisition').getContext('2d');
+  const acqColors = boData.phases.map(p => p === 'warmup' ? 'rgba(255,238,0,0.6)' : 'rgba(0,240,255,0.6)');
+  charts.acquisition = new Chart(acqCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Acquisition Value',
+        data: boData.acquisitionValues,
+        backgroundColor: acqColors,
+        borderColor: acqColors.map(c => c.replace('0.6', '1')),
+        borderWidth: 1,
+        borderRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+
+  // --- GP Mean & Variance chart ---
+  destroyChart('gp');
+  const gpCtx = document.getElementById('chart-gp').getContext('2d');
+  charts.gp = new Chart(gpCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'GP Mean',
+          data: boData.gpMean,
+          borderColor: CHART_COLORS.cyan,
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 1,
+          borderWidth: 2,
+          yAxisID: 'y'
+        },
+        {
+          label: 'GP Variance',
+          data: boData.gpVariance,
+          borderColor: CHART_COLORS.magenta,
+          backgroundColor: CHART_COLORS.magentaAlpha,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 1,
+          borderWidth: 2,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: 'Mean' },
+          grid: { color: 'rgba(0,240,255,0.05)' }
+        },
+        y1: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: 'Variance' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+
+  // --- Hamiltonian Energy chart ---
+  destroyChart('hamiltonian');
+  const hamCtx = document.getElementById('chart-hamiltonian').getContext('2d');
+  charts.hamiltonian = new Chart(hamCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Hamiltonian Energy',
+        data: boData.hamiltonianEnergy,
+        borderColor: CHART_COLORS.orange,
+        backgroundColor: 'rgba(255, 102, 0, 0.15)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 1,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { title: { display: true, text: 'Iteration' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'Energy' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+
+  // --- Scatter chart ---
+  destroyChart('scatter');
+  const scCtx = document.getElementById('chart-scatter').getContext('2d');
+  const minY = Math.min(...boData.pointsY);
+  const maxY = Math.max(...boData.pointsY);
+  const rangeY = maxY - minY || 1;
+  const scatterColors = boData.pointsY.map(y => {
+    const t = (y - minY) / rangeY;
+    const r = Math.round(255 * (1 - t));
+    const g = Math.round(255 * t);
+    return `rgba(${r}, ${g}, 100, 0.8)`;
+  });
+
+  charts.scatter = new Chart(scCtx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Evaluated Points',
+        data: boData.pointsX0.map((x0, i) => ({ x: x0, y: boData.pointsX1[i] })),
+        backgroundColor: scatterColors,
+        borderColor: scatterColors.map(c => c.replace('0.8', '1')),
+        borderWidth: 1,
+        pointRadius: 5,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const i = ctx.dataIndex;
+              return 'x=[' + fmt(boData.pointsX0[i], 3) + ', ' + fmt(boData.pointsX1[i], 3) + '] y=' + fmt(boData.pointsY[i]);
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'x[0]' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'x[1]' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  EVIDENTIAL LEARNING
+// ═══════════════════════════════════════════════════
+
+async function runClassification() {
+  showSpinner('ev-cls-spinner');
+  try {
+    const batchSize = parseInt(document.getElementById('ev-cls-batch').value);
+    const nClasses = parseInt(document.getElementById('ev-cls-classes').value);
+    const data = await apiFetch('/api/evidential/classify', { batchSize, nClasses });
+    renderClassificationResults(data.results, nClasses);
+  } catch (e) {
+    console.error('Classification error:', e);
+  }
+  hideSpinner('ev-cls-spinner');
+}
+
+function renderClassificationResults(results, nClasses) {
+  // Probability bar chart for first sample
+  const sample = results[0];
+  const classLabels = Array.from({ length: nClasses }, (_, i) => 'Class ' + i);
+
+  destroyChart('evProbs');
+  const ctx = document.getElementById('chart-ev-probs').getContext('2d');
+  charts.evProbs = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: classLabels,
+      datasets: [
+        {
+          label: 'Probability',
+          data: sample.prediction.probabilities,
+          backgroundColor: CLASS_COLORS.slice(0, nClasses).map(c => c + '99'),
+          borderColor: CLASS_COLORS.slice(0, nClasses),
+          borderWidth: 2,
+          borderRadius: 4
+        },
+        {
+          label: 'Uncertainty',
+          data: Array(nClasses).fill(sample.prediction.uncertainty),
+          backgroundColor: 'rgba(255, 0, 170, 0.15)',
+          borderColor: 'rgba(255, 0, 170, 0.5)',
+          borderWidth: 1,
+          borderDash: [5, 5],
+          type: 'line',
+          fill: true,
+          pointRadius: 0,
+          tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { min: 0, max: 1, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+
+  // Dissonance meter chart
+  destroyChart('evDissonance');
+  const dCtx = document.getElementById('chart-ev-dissonance').getContext('2d');
+  const dissonances = results.map(r => r.prediction.dissonance);
+  const uncertainties = results.map(r => r.prediction.uncertainty);
+  charts.evDissonance = new Chart(dCtx, {
+    type: 'bar',
+    data: {
+      labels: results.map((_, i) => '#' + (i + 1)),
+      datasets: [
+        {
+          label: 'Dissonance',
+          data: dissonances,
+          backgroundColor: 'rgba(255, 0, 170, 0.5)',
+          borderColor: '#ff00aa',
+          borderWidth: 1,
+          borderRadius: 2
+        },
+        {
+          label: 'Uncertainty',
+          data: uncertainties,
+          backgroundColor: 'rgba(0, 240, 255, 0.3)',
+          borderColor: '#00f0ff',
+          borderWidth: 1,
+          borderRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { min: 0, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+
+  // Results table
+  const tbody = document.querySelector('#ev-cls-table tbody');
+  tbody.innerHTML = '';
+  results.forEach((r, i) => {
+    const correct = r.trueClass === r.prediction.predictedClass;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + (i + 1) + '</td>' +
+      '<td>Class ' + r.trueClass + '</td>' +
+      '<td>Class ' + r.prediction.predictedClass + '</td>' +
+      '<td>' + fmt(r.prediction.confidence) + '</td>' +
+      '<td>' + fmt(r.prediction.uncertainty) + '</td>' +
+      '<td>' + fmt(r.prediction.dissonance) + '</td>' +
+      '<td style="color:' + (correct ? 'var(--neon-green)' : 'var(--neon-red)') + '">' + (correct ? 'CORRECT' : 'WRONG') + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+async function runRegression() {
+  showSpinner('ev-reg-spinner');
+  try {
+    const nPoints = parseInt(document.getElementById('ev-reg-points').value);
+    const data = await apiFetch('/api/evidential/regression', { nPoints });
+    renderRegressionResults(data.results);
+  } catch (e) {
+    console.error('Regression error:', e);
+  }
+  hideSpinner('ev-reg-spinner');
+}
+
+function renderRegressionResults(results) {
+  destroyChart('evRegression');
+  const ctx = document.getElementById('chart-ev-regression').getContext('2d');
+
+  const xs = results.map(r => r.x.toFixed(2));
+  const trueY = results.map(r => r.trueY);
+  const predMean = results.map(r => r.prediction.mean);
+  const upper = results.map(r => r.prediction.upperBound);
+  const lower = results.map(r => r.prediction.lowerBound);
+  const epistemicUpper = results.map(r => r.prediction.mean + Math.sqrt(r.prediction.epistemicUncertainty));
+  const epistemicLower = results.map(r => r.prediction.mean - Math.sqrt(r.prediction.epistemicUncertainty));
+
+  charts.evRegression = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: xs,
+      datasets: [
+        {
+          label: 'True Y',
+          data: trueY,
+          borderColor: CHART_COLORS.green,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Predicted Mean',
+          data: predMean,
+          borderColor: CHART_COLORS.cyan,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Total Uncertainty (Upper)',
+          data: upper,
+          borderColor: 'rgba(255, 0, 170, 0.4)',
+          backgroundColor: 'rgba(255, 0, 170, 0.08)',
+          fill: '+1',
+          borderWidth: 1,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Total Uncertainty (Lower)',
+          data: lower,
+          borderColor: 'rgba(255, 0, 170, 0.4)',
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Epistemic (Upper)',
+          data: epistemicUpper,
+          borderColor: 'rgba(0, 240, 255, 0.3)',
+          backgroundColor: 'rgba(0, 240, 255, 0.06)',
+          fill: '+1',
+          borderWidth: 1,
+          borderDash: [2, 2],
+          pointRadius: 0,
+          tension: 0.4
+        },
+        {
+          label: 'Epistemic (Lower)',
+          data: epistemicLower,
+          borderColor: 'rgba(0, 240, 255, 0.3)',
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderDash: [2, 2],
+          pointRadius: 0,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'top' } },
+      scales: {
+        x: { title: { display: true, text: 'x' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'y' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+}
+
+async function runOpenSet() {
+  showSpinner('ev-os-spinner');
+  try {
+    const nKnown = parseInt(document.getElementById('ev-os-known').value);
+    const nUnknown = parseInt(document.getElementById('ev-os-unknown').value);
+    const threshold = parseFloat(document.getElementById('ev-os-threshold').value);
+    const data = await apiFetch('/api/evidential/openset', { nKnown, nUnknown, threshold });
+    renderOpenSetResults(data.results, threshold);
+  } catch (e) {
+    console.error('Open-Set error:', e);
+  }
+  hideSpinner('ev-os-spinner');
+}
+
+function renderOpenSetResults(results, threshold) {
+  destroyChart('evOpenset');
+  const ctx = document.getElementById('chart-ev-openset').getContext('2d');
+
+  const knownPoints = [];
+  const unknownDetected = [];
+  const unknownMissed = [];
+  const knownRejected = [];
+
+  results.forEach((r, i) => {
+    const pt = {
+      x: r.result.confidence,
+      y: r.result.uncertainty,
+      idx: i,
+      label: r.result.label
+    };
+
+    if (r.type === 'known') {
+      if (r.result.isUnknown) {
+        knownRejected.push(pt);
+      } else {
+        knownPoints.push(pt);
+      }
+    } else {
+      if (r.result.isUnknown) {
+        unknownDetected.push(pt);
+      } else {
+        unknownMissed.push(pt);
+      }
+    }
+  });
+
+  charts.evOpenset = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Known (Accepted)',
+          data: knownPoints,
+          backgroundColor: 'rgba(0, 255, 136, 0.7)',
+          borderColor: '#00ff88',
+          borderWidth: 1,
+          pointRadius: 7,
+          pointStyle: 'circle'
+        },
+        {
+          label: 'Unknown (Detected)',
+          data: unknownDetected,
+          backgroundColor: 'rgba(255, 0, 170, 0.7)',
+          borderColor: '#ff00aa',
+          borderWidth: 1,
+          pointRadius: 9,
+          pointStyle: 'crossRot'
+        },
+        {
+          label: 'Unknown (Missed)',
+          data: unknownMissed,
+          backgroundColor: 'rgba(255, 0, 68, 0.7)',
+          borderColor: '#ff0044',
+          borderWidth: 2,
+          pointRadius: 9,
+          pointStyle: 'triangle'
+        },
+        {
+          label: 'Known (Rejected)',
+          data: knownRejected,
+          backgroundColor: 'rgba(255, 238, 0, 0.7)',
+          borderColor: '#ffee00',
+          borderWidth: 1,
+          pointRadius: 7,
+          pointStyle: 'rectRot'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const d = ctx.raw;
+              return d.label + ' | conf=' + fmt(d.x) + ' unc=' + fmt(d.y);
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Confidence' }, min: 0, max: 1, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'Uncertainty' }, min: 0, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    },
+    plugins: [{
+      id: 'thresholdLine',
+      beforeDraw(chart) {
+        const yAxis = chart.scales.y;
+        const xAxis = chart.scales.x;
+        const yPixel = yAxis.getPixelForValue(threshold);
+        const ctx2 = chart.ctx;
+        ctx2.save();
+        ctx2.strokeStyle = 'rgba(255, 0, 170, 0.6)';
+        ctx2.lineWidth = 2;
+        ctx2.setLineDash([6, 4]);
+        ctx2.beginPath();
+        ctx2.moveTo(xAxis.left, yPixel);
+        ctx2.lineTo(xAxis.right, yPixel);
+        ctx2.stroke();
+        ctx2.fillStyle = 'rgba(255, 0, 170, 0.8)';
+        ctx2.font = '10px sans-serif';
+        ctx2.fillText('Threshold: ' + threshold.toFixed(2), xAxis.left + 6, yPixel - 6);
+        ctx2.restore();
+      }
+    }]
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  ADVERSARIAL LAB
+// ═══════════════════════════════════════════════════
+
+async function runAdversarial() {
+  showSpinner('adv-spinner');
+  try {
+    const epsilon = parseFloat(document.getElementById('adv-epsilon').value);
+    const smoothingStrength = parseFloat(document.getElementById('adv-smoothing').value);
+    const nSamples = parseInt(document.getElementById('adv-samples').value);
+    const data = await apiFetch('/api/adversarial/evaluate', { epsilon, smoothingStrength, nSamples });
+    renderAdversarialResults(data);
+  } catch (e) {
+    console.error('Adversarial error:', e);
+  }
+  hideSpinner('adv-spinner');
+}
+
+function renderAdversarialResults(data) {
+  const { summary, attacks, defenses } = data;
+
+  // Update gauges
+  updateGauge('gauge-attack-fill', 'gauge-attack-val', summary.attackSuccessRate, 'var(--neon-red)');
+  updateGauge('gauge-defense-fill', 'gauge-defense-val', summary.defenseSuccessRate, 'var(--neon-green)');
+
+  // Robustness bar
+  const robScore = Math.max(0, Math.min(1, summary.averageRobustness));
+  const robBar = document.getElementById('adv-robustness-bar');
+  robBar.style.width = (robScore * 100) + '%';
+  document.getElementById('adv-robustness-val').textContent = fmt(summary.averageRobustness);
+
+  // Probability comparison for first sample
+  if (attacks.length > 0 && defenses.length > 0) {
+    renderProbComparison(attacks[0], defenses[0]);
+  }
+}
+
+function updateGauge(fillId, valId, value, color) {
+  const circumference = 2 * Math.PI * 65;
+  const offset = circumference * (1 - value);
+  const fill = document.getElementById(fillId);
+  fill.style.strokeDashoffset = offset;
+  document.getElementById(valId).textContent = Math.round(value * 100) + '%';
+}
+
+function renderProbComparison(attack, defense) {
+  const nClasses = attack.originalProbs.length;
+  const sections = [
+    { id: 'adv-prob-original', probs: attack.originalProbs, color: CHART_COLORS.cyan },
+    { id: 'adv-prob-adversarial', probs: attack.adversarialProbs, color: CHART_COLORS.red },
+    { id: 'adv-prob-defended', probs: defense.probabilities, color: CHART_COLORS.green }
+  ];
+
+  sections.forEach(sec => {
+    const el = document.getElementById(sec.id);
+    let html = '<h4>' + el.querySelector('h4').textContent + '</h4>';
+    sec.probs.forEach((p, i) => {
+      const w = (p * 100).toFixed(1);
+      html +=
+        '<div class="prob-bar-row">' +
+        '<span class="prob-bar-label">C' + i + '</span>' +
+        '<div class="prob-bar-track"><div class="prob-bar-fill" style="width:' + w + '%;background:' + sec.color + '"></div></div>' +
+        '<span class="prob-bar-val">' + fmt(p, 3) + '</span>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  ACTIVE LEARNING
+// ═══════════════════════════════════════════════════
+
+let alState = null;
+
+async function initActiveLearning() {
+  showSpinner('al-spinner');
+  alAutoRunning = false;
+  if (alAutoInterval) { clearInterval(alAutoInterval); alAutoInterval = null; }
+  document.getElementById('al-auto-btn').textContent = 'Auto-Run';
+
+  try {
+    const nSamples = parseInt(document.getElementById('al-samples').value);
+    const nClasses = parseInt(document.getElementById('al-classes').value);
+    const data = await apiFetch('/api/active-learning/init', { nSamples, nClasses });
+    alState = data;
+    renderActiveLearning(data);
+    document.getElementById('al-next-btn').disabled = false;
+    document.getElementById('al-auto-btn').disabled = false;
+  } catch (e) {
+    console.error('Active Learning init error:', e);
+  }
+  hideSpinner('al-spinner');
+}
+
+async function stepActiveLearning() {
+  showSpinner('al-spinner');
+  try {
+    const batchSize = parseInt(document.getElementById('al-batchsize').value);
+    const data = await apiFetch('/api/active-learning/step', { batchSize });
+    if (data.done) {
+      alAutoRunning = false;
+      if (alAutoInterval) { clearInterval(alAutoInterval); alAutoInterval = null; }
+      document.getElementById('al-auto-btn').textContent = 'Auto-Run';
+      document.getElementById('al-next-btn').disabled = true;
+      document.getElementById('al-auto-btn').disabled = true;
+    }
+    if (data.state) {
+      alState = data.state;
+      renderActiveLearning(data.state, data);
+    }
+  } catch (e) {
+    console.error('Active Learning step error:', e);
+  }
+  hideSpinner('al-spinner');
+}
+
+function autoRunActiveLearning() {
+  if (alAutoRunning) {
+    alAutoRunning = false;
+    if (alAutoInterval) { clearInterval(alAutoInterval); alAutoInterval = null; }
+    document.getElementById('al-auto-btn').textContent = 'Auto-Run';
+    return;
+  }
+  alAutoRunning = true;
+  document.getElementById('al-auto-btn').textContent = 'Stop';
+  alAutoInterval = setInterval(async () => {
+    if (!alAutoRunning) {
+      clearInterval(alAutoInterval);
+      alAutoInterval = null;
+      return;
+    }
+    await stepActiveLearning();
+  }, 800);
+}
+
+function renderActiveLearning(state, stepData) {
+  // Update stats
+  document.getElementById('al-stat-iter').textContent = state.iteration;
+  document.getElementById('al-stat-labeled').textContent = state.nLabeled;
+  document.getElementById('al-stat-unlabeled').textContent = state.nUnlabeled;
+
+  if (state.accuracyHistory && state.accuracyHistory.length > 0) {
+    const lastAcc = state.accuracyHistory[state.accuracyHistory.length - 1].accuracy;
+    document.getElementById('al-stat-accuracy').textContent = (lastAcc * 100).toFixed(1) + '%';
+  }
+
+  // Scatter plot
+  destroyChart('alScatter');
+  const sCtx = document.getElementById('chart-al-scatter').getContext('2d');
+
+  const datasets = [];
+
+  // Unlabeled points
+  if (state.unlabeledPool && state.unlabeledPool.length > 0) {
+    datasets.push({
+      label: 'Unlabeled',
+      data: state.unlabeledPool.map(p => ({ x: p.features[0], y: p.features[1] })),
+      backgroundColor: 'rgba(74, 82, 128, 0.4)',
+      borderColor: 'rgba(74, 82, 128, 0.6)',
+      borderWidth: 1,
+      pointRadius: 4,
+      pointStyle: 'circle'
+    });
+  }
+
+  // Labeled points grouped by class
+  if (state.labeledPool && state.labeledPool.length > 0) {
+    const byClass = {};
+    state.labeledPool.forEach(p => {
+      if (!byClass[p.trueLabel]) byClass[p.trueLabel] = [];
+      byClass[p.trueLabel].push(p);
+    });
+
+    Object.keys(byClass).forEach(cls => {
+      const ci = parseInt(cls);
+      datasets.push({
+        label: 'Class ' + cls,
+        data: byClass[cls].map(p => ({ x: p.features[0], y: p.features[1] })),
+        backgroundColor: CLASS_COLORS[ci % CLASS_COLORS.length] + 'bb',
+        borderColor: CLASS_COLORS[ci % CLASS_COLORS.length],
+        borderWidth: 2,
+        pointRadius: 6,
+        pointStyle: 'rectRot'
+      });
+    });
+  }
+
+  // Highlight selected points from latest step
+  if (stepData && stepData.selectedPoints) {
+    datasets.push({
+      label: 'Just Selected',
+      data: stepData.selectedPoints.map(p => ({ x: p.features[0], y: p.features[1] })),
+      backgroundColor: 'rgba(255, 238, 0, 0.9)',
+      borderColor: '#ffee00',
+      borderWidth: 3,
+      pointRadius: 10,
+      pointStyle: 'star'
+    });
+  }
+
+  charts.alScatter = new Chart(sCtx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'top' } },
+      scales: {
+        x: { title: { display: true, text: 'Feature 0' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'Feature 1' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    }
+  });
+
+  // Learning curve
+  destroyChart('alCurve');
+  const cCtx = document.getElementById('chart-al-curve').getContext('2d');
+
+  if (state.accuracyHistory && state.accuracyHistory.length > 0) {
+    charts.alCurve = new Chart(cCtx, {
+      type: 'line',
+      data: {
+        labels: state.accuracyHistory.map(h => h.nLabeled),
+        datasets: [{
+          label: 'Accuracy',
+          data: state.accuracyHistory.map(h => (h.accuracy * 100)),
+          borderColor: CHART_COLORS.magenta,
+          backgroundColor: CHART_COLORS.magentaAlpha,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: CHART_COLORS.magenta,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } },
+        scales: {
+          x: { title: { display: true, text: 'Labeled Count' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+          y: { title: { display: true, text: 'Accuracy (%)' }, min: 0, max: 100, grid: { color: 'rgba(0,240,255,0.05)' } }
+        }
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DRIFT DETECTION
+// ═══════════════════════════════════════════════════
+
+async function runDriftScenario() {
+  showSpinner('drift-spinner');
+  try {
+    const nTicks = parseInt(document.getElementById('drift-ticks').value);
+    const windowSize = parseInt(document.getElementById('drift-window').value);
+    const driftThreshold = parseFloat(document.getElementById('drift-thresh').value);
+    const criticalThreshold = parseFloat(document.getElementById('drift-critical').value);
+    const data = await apiFetch('/api/drift/scenario', { nTicks, windowSize, driftThreshold, criticalThreshold });
+    renderDriftResults(data.results, data.state, driftThreshold, criticalThreshold);
+  } catch (e) {
+    console.error('Drift error:', e);
+  }
+  hideSpinner('drift-spinner');
+}
+
+function renderDriftResults(results, state, driftThreshold, criticalThreshold) {
+  // Update phase indicator
+  const lastPhase = results[results.length - 1].phase;
+  const phaseEl = document.getElementById('drift-phase-indicator');
+  const phaseText = document.getElementById('drift-phase-text');
+  phaseText.textContent = lastPhase;
+  phaseEl.className = 'phase-indicator ' + lastPhase.toLowerCase();
+
+  const pulseIcon = phaseEl.querySelector('.pulse-icon');
+  pulseIcon.className = 'pulse-icon';
+  if (lastPhase === 'STABLE') pulseIcon.classList.add('green');
+  else if (lastPhase === 'DRIFT') pulseIcon.classList.add('yellow');
+  else if (lastPhase === 'CRITICAL') pulseIcon.classList.add('red');
+  else pulseIcon.classList.add('green');
+
+  const ticks = results.map(r => r.tick);
+  const values = results.map(r => r.value);
+  const klValues = results.map(r => r.klDivergence);
+  const phases = results.map(r => r.phase);
+
+  // Build phase regions for background coloring
+  const phaseColors = {
+    'WARMUP': 'rgba(136, 146, 176, 0.06)',
+    'STABLE': 'rgba(0, 255, 136, 0.06)',
+    'DRIFT': 'rgba(255, 238, 0, 0.08)',
+    'CRITICAL': 'rgba(255, 0, 68, 0.1)'
+  };
+
+  const phaseBorderColors = {
+    'WARMUP': 'rgba(136, 146, 176, 0.3)',
+    'STABLE': 'rgba(0, 255, 136, 0.3)',
+    'DRIFT': 'rgba(255, 238, 0, 0.4)',
+    'CRITICAL': 'rgba(255, 0, 68, 0.5)'
+  };
+
+  // Time series with phase background
+  destroyChart('driftTS');
+  const tsCtx = document.getElementById('chart-drift-ts').getContext('2d');
+  charts.driftTS = new Chart(tsCtx, {
+    type: 'line',
+    data: {
+      labels: ticks,
+      datasets: [{
+        label: 'Value',
+        data: values,
+        borderColor: CHART_COLORS.cyan,
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { title: { display: true, text: 'Tick' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'Value' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    },
+    plugins: [{
+      id: 'phaseBackground',
+      beforeDraw(chart) {
+        const ctx2 = chart.ctx;
+        const xAxis = chart.scales.x;
+        const yAxis = chart.scales.y;
+        ctx2.save();
+
+        let prevPhase = phases[0];
+        let regionStart = 0;
+
+        for (let i = 1; i <= phases.length; i++) {
+          const currentPhase = i < phases.length ? phases[i] : null;
+          if (currentPhase !== prevPhase || i === phases.length) {
+            const x1 = xAxis.getPixelForValue(regionStart);
+            const x2 = xAxis.getPixelForValue(i - 1);
+            ctx2.fillStyle = phaseColors[prevPhase] || phaseColors['STABLE'];
+            ctx2.fillRect(x1, yAxis.top, x2 - x1, yAxis.bottom - yAxis.top);
+
+            // Phase label
+            ctx2.fillStyle = phaseBorderColors[prevPhase] || phaseBorderColors['STABLE'];
+            ctx2.font = '9px sans-serif';
+            if (x2 - x1 > 40) {
+              ctx2.fillText(prevPhase, x1 + 4, yAxis.top + 12);
+            }
+
+            regionStart = i;
+            prevPhase = currentPhase;
+          }
+        }
+        ctx2.restore();
+      }
+    }]
+  });
+
+  // KL Divergence chart
+  destroyChart('driftKL');
+  const klCtx = document.getElementById('chart-drift-kl').getContext('2d');
+  charts.driftKL = new Chart(klCtx, {
+    type: 'line',
+    data: {
+      labels: ticks,
+      datasets: [
+        {
+          label: 'KL Divergence',
+          data: klValues,
+          borderColor: CHART_COLORS.magenta,
+          backgroundColor: CHART_COLORS.magentaAlpha,
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { title: { display: true, text: 'Tick' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+        y: { title: { display: true, text: 'KL Divergence' }, min: 0, grid: { color: 'rgba(0,240,255,0.05)' } }
+      }
+    },
+    plugins: [{
+      id: 'thresholdLines',
+      beforeDraw(chart) {
+        const ctx2 = chart.ctx;
+        const yAxis = chart.scales.y;
+        const xAxis = chart.scales.x;
+
+        // Drift threshold
+        const dY = yAxis.getPixelForValue(driftThreshold);
+        ctx2.save();
+        ctx2.strokeStyle = 'rgba(255, 238, 0, 0.6)';
+        ctx2.lineWidth = 1.5;
+        ctx2.setLineDash([6, 4]);
+        ctx2.beginPath();
+        ctx2.moveTo(xAxis.left, dY);
+        ctx2.lineTo(xAxis.right, dY);
+        ctx2.stroke();
+        ctx2.fillStyle = 'rgba(255, 238, 0, 0.7)';
+        ctx2.font = '10px sans-serif';
+        ctx2.fillText('Drift: ' + driftThreshold, xAxis.right - 60, dY - 5);
+
+        // Critical threshold
+        const cY = yAxis.getPixelForValue(criticalThreshold);
+        ctx2.strokeStyle = 'rgba(255, 0, 68, 0.6)';
+        ctx2.beginPath();
+        ctx2.moveTo(xAxis.left, cY);
+        ctx2.lineTo(xAxis.right, cY);
+        ctx2.stroke();
+        ctx2.fillStyle = 'rgba(255, 0, 68, 0.7)';
+        ctx2.fillText('Critical: ' + criticalThreshold, xAxis.right - 80, cY - 5);
+
+        ctx2.restore();
+      }
+    }]
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  INITIALIZATION
+// ═══════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  connectWebSocket();
+
+  // Fetch system info
+  fetch('/api/info')
+    .then(r => r.json())
+    .then(info => {
+      console.log('ZKAEDI PRIME:', info.name, 'v' + info.version);
+      console.log('Modules:', info.modules.join(', '));
+    })
+    .catch(() => console.log('Server not yet available'));
+});
+</script>
+</body>
+</html>
